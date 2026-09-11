@@ -1,0 +1,11 @@
+FAIL - A1 API creates individual booking - 409
+
+---STDERR---
+Traceback (most recent call last):
+  File "C:\JobHustle\tests\verify_browser.py", line 221, in <module>
+    main()
+    ~~~~^^
+  File "C:\JobHustle\tests\verify_browser.py", line 81, in main
+    bid = r.json()["id"]
+          ~~~~~~~~^^^^^^
+KeyError: 'id'

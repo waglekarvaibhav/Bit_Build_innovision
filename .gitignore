@@ -1,0 +1,35 @@
+# CrewNest
+# Dependency folders / caches
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+!*.example
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+crewneat.db
+crewneat.db-*
+
+# Uploads (private files)
+uploads/
+!uploads/.gitkeep
+
+# Test / runtime artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

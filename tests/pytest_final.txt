@@ -1,0 +1,49 @@
+﻿..........................                                               [100%]
+============================== warnings summary ===============================
+backend\config.py:19
+  C:\JobHustle\backend\config.py:19: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Settings(BaseSettings):
+
+tests/test_auth.py: 14 warnings
+tests/test_bookings.py: 99 warnings
+tests/test_improvements.py: 26 warnings
+tests/test_packages.py: 87 warnings
+  C:\JobHustle\backend\models.py:70: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return datetime.utcnow()
+
+tests/test_bookings.py::test_pending_accept_request_completion_confirm_review
+tests/test_bookings.py::test_customer_rejects_completion_returns_to_accepted
+tests/test_bookings.py::test_unauthorized_cross_account_blocked
+tests/test_bookings.py::test_double_submit_rejected
+tests/test_packages.py::test_multitasking_snapshot_unchanged_after_archive
+tests/test_packages.py::test_team_package_full_workflow
+  C:\JobHustle\backend\routers\bookings.py:297: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    b.updated_at = datetime.utcnow()
+
+tests/test_bookings.py::test_pending_accept_request_completion_confirm_review
+tests/test_bookings.py::test_customer_rejects_completion_returns_to_accepted
+tests/test_bookings.py::test_unauthorized_cross_account_blocked
+tests/test_packages.py::test_team_package_full_workflow
+  C:\JobHustle\backend\routers\bookings.py:331: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    b.updated_at = datetime.utcnow()
+
+tests/test_bookings.py::test_pending_accept_request_completion_confirm_review
+tests/test_packages.py::test_team_package_full_workflow
+  C:\JobHustle\backend\routers\bookings.py:351: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    b.updated_at = datetime.utcnow()
+
+tests/test_bookings.py::test_customer_rejects_completion_returns_to_accepted
+  C:\JobHustle\backend\routers\bookings.py:369: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    b.updated_at = datetime.utcnow()
+
+tests/test_bookings.py::test_provider_rejection_sets_rejected
+  C:\JobHustle\backend\routers\bookings.py:314: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    b.updated_at = datetime.utcnow()
+
+tests/test_bookings.py::test_customer_cancels_pending
+  C:\JobHustle\backend\routers\bookings.py:388: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    b.updated_at = datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+26 passed, 242 warnings in 59.95s
+

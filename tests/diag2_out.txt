@@ -1,0 +1,7 @@
+﻿create 201
+status completion_requested
+URL http://127.0.0.1:8001/booking/4
+confirm btn count: 1
+reject btn count: 1
+>> Confirm completion
+>> Reject completion
