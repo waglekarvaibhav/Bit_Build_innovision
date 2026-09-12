@@ -1,4 +1,4 @@
-// Shared app shell rendering: customer shell + CrewNest NX provider dock.
+// Shared app shell rendering: customer shell + polished provider workspace.
 const SIDEBAR_LINKS_BY_ROLE = {
   customer: [
     { key: "home", label: "Home", icon: "home", href: "/home" },
@@ -9,10 +9,10 @@ const SIDEBAR_LINKS_BY_ROLE = {
     { key: "profile", label: "Profile", icon: "user", href: "/profile" },
   ],
   provider: [
-    { key: "home", label: "Home", icon: "home", href: "/provider-home" },
-    { key: "requests", label: "Inbox", icon: "inbox", href: "/provider-requests" },
-    { key: "jobs", label: "Jobs", icon: "clock", href: "/provider-jobs" },
-    { key: "packages", label: "Studio", icon: "box", href: "/provider-packages" },
+    { key: "home", label: "Overview", icon: "home", href: "/provider-home" },
+    { key: "requests", label: "Requests", icon: "inbox", href: "/provider-requests" },
+    { key: "jobs", label: "My Jobs", icon: "clock", href: "/provider-jobs" },
+    { key: "packages", label: "Packages", icon: "box", href: "/provider-packages" },
     { key: "profile", label: "Profile", icon: "user", href: "/provider-profile" },
   ],
 };
@@ -27,9 +27,9 @@ const AppShell = {
 
     const mobileLinks = me.role === "provider" ? [
       { key: "home", label: "Home", icon: "home", href: "/provider-home" },
-      { key: "requests", label: "Inbox", icon: "inbox", href: "/provider-requests" },
+      { key: "requests", label: "Requests", icon: "inbox", href: "/provider-requests" },
       { key: "jobs", label: "Jobs", icon: "clock", href: "/provider-jobs" },
-      { key: "packages", label: "Studio", icon: "box", href: "/provider-packages" },
+      { key: "packages", label: "Packages", icon: "box", href: "/provider-packages" },
       { key: "profile", label: "Profile", icon: "user", href: "/provider-profile" },
     ] : [
       { key: "home", label: "Home", icon: "home", href: "/home" },
@@ -43,19 +43,27 @@ const AppShell = {
     ).join("");
 
     if (me.role === "provider") {
-      const dockNav = links.map(l => `
-        <a href="${l.href}" class="${l.key === activeKey ? "active" : ""}" data-nav="${l.key}" aria-label="${l.label}">
-          ${icon(l.icon)}<span>${l.label}</span>
+      const nav = links.map(l => `
+        <a href="${l.href}" class="${l.key === activeKey ? "active" : ""}" data-nav="${l.key}">
+          <span class="nx-nav-icon">${icon(l.icon)}</span>
+          <span class="nx-nav-label">${l.label}</span>
         </a>`).join("");
 
       app.innerHTML = `
         <div class="app mi-root mi-role-provider">
-          <aside class="nx-dock" aria-label="Provider navigation">
-            <a class="nx-brand" href="/provider-home" aria-label="CrewNest provider home"><span>CN</span><small>NX</small></a>
-            <nav class="nx-nav">${dockNav}</nav>
-            <div class="nx-dock-spacer"></div>
-            <div class="nx-person" title="${esc(me.full_name)}">${initials(me.full_name)}</div>
-            <button class="nx-logout" id="logout-btn" aria-label="Sign out">${icon("logout")}</button>
+          <aside class="nx-sidebar" aria-label="Provider navigation">
+            <a class="nx-brand" href="/provider-home" aria-label="CrewNest provider home">
+              <span class="nx-brand-mark">CN</span>
+              <span class="nx-brand-copy"><strong>CrewNest</strong><small>Provider workspace</small></span>
+            </a>
+            <div class="nx-side-label">Workspace</div>
+            <nav class="nx-nav">${nav}</nav>
+            <div class="nx-side-spacer"></div>
+            <div class="nx-side-user">
+              <span class="nx-person">${initials(me.full_name)}</span>
+              <span class="nx-person-copy"><strong>${esc(me.full_name)}</strong><small>Service provider</small></span>
+            </div>
+            <button class="nx-logout" id="logout-btn">${icon("logout")}<span>Sign out</span></button>
           </aside>
           <main class="main" id="main"></main>
           <nav class="mobile-nav" aria-label="Mobile navigation">${mobileNav}</nav>
@@ -94,7 +102,7 @@ const AppShell = {
 
 function esc(s) {
   if (s == null) return "";
-  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;", "'": "&#39;" }[c]));
 }
 function money(n) { if (n == null) return "—"; return "₹" + Number(n).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
 function fmtDate(iso) { if (!iso) return ""; const d = new Date(iso); return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); }
