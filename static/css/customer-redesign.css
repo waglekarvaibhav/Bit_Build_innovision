@@ -1,0 +1,61 @@
+/* CrewNest customer redesign — branch-only, customer-scoped */
+.mi-role-customer .main{max-width:1380px;padding:28px 34px 40px}
+.mi-role-customer .page-head{display:none}
+.mi-role-customer #content{width:100%}
+.mi-role-customer .cn-home{display:flex;flex-direction:column;gap:24px}
+.mi-role-customer .cn-home-hero{position:relative;overflow:hidden;border-radius:24px;padding:34px;background:linear-gradient(135deg,#0a1020 0%,#111a33 56%,#1b2b61 100%);box-shadow:0 24px 60px rgba(10,16,32,.18);color:#fff}
+.mi-role-customer .cn-home-hero:before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-70px;top:-90px;border:1px solid rgba(255,255,255,.15);box-shadow:0 0 0 38px rgba(255,255,255,.025),0 0 0 76px rgba(255,255,255,.014)}
+.mi-role-customer .cn-hero-copy{position:relative;z-index:1;max-width:680px}
+.mi-role-customer .cn-kicker{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);border-radius:999px;font-size:.78rem;font-weight:700;color:#dce3ff;margin-bottom:16px}
+.mi-role-customer .cn-home-hero h1{margin:0;color:#fff;font-size:clamp(2rem,4vw,3.4rem);line-height:1;letter-spacing:-.055em;max-width:11ch}
+.mi-role-customer .cn-home-hero p{margin:14px 0 0;color:#c7d0e6;max-width:52ch;font-size:1rem}
+.mi-role-customer .cn-hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.mi-role-customer .cn-hero-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:12px;font-weight:700;text-decoration:none;border:1px solid transparent}
+.mi-role-customer .cn-hero-btn.primary{background:#fff;color:#0a1020}
+.mi-role-customer .cn-hero-btn.secondary{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.16)}
+.mi-role-customer .cn-market-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:26px;position:relative;z-index:1;max-width:610px}
+.mi-role-customer .cn-market-stat{padding:14px 16px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);border-radius:14px;backdrop-filter:blur(8px)}
+.mi-role-customer .cn-market-stat strong{display:block;color:#fff;font-size:1.22rem;letter-spacing:-.03em}
+.mi-role-customer .cn-market-stat span{display:block;color:#aeb8d0;font-size:.78rem;margin-top:2px}
+.mi-role-customer .cn-search-panel{margin-top:-40px;position:relative;z-index:3;padding:0 28px}
+.mi-role-customer .cn-search-box{display:grid;grid-template-columns:1fr auto;gap:10px;background:#fff;border:1px solid #e2e7f0;border-radius:18px;padding:10px;box-shadow:0 18px 46px rgba(16,24,40,.13)}
+.mi-role-customer .cn-search-input-wrap{display:flex;align-items:center;gap:10px;padding:0 10px;color:#667085}
+.mi-role-customer .cn-search-input-wrap input{border:0;outline:0;width:100%;font-size:1rem;background:transparent;color:#111827;min-height:44px}
+.mi-role-customer .cn-search-submit{border:0;background:#4f67ff;color:#fff;border-radius:12px;padding:0 18px;font-weight:700;cursor:pointer}
+.mi-role-customer .cn-localities{display:flex;gap:8px;overflow-x:auto;padding:12px 2px 2px;scrollbar-width:none}
+.mi-role-customer .cn-localities::-webkit-scrollbar{display:none}
+.mi-role-customer .cn-locality{flex:0 0 auto;border:1px solid #e2e7f0;background:#fff;color:#475467;border-radius:999px;padding:8px 12px;font-size:.83rem;font-weight:650;cursor:pointer}
+.mi-role-customer .cn-section{display:flex;flex-direction:column;gap:14px}
+.mi-role-customer .cn-section-head{display:flex;align-items:end;justify-content:space-between;gap:16px}
+.mi-role-customer .cn-section-head h2{margin:0;color:#0a1020;font-size:1.28rem;letter-spacing:-.025em}
+.mi-role-customer .cn-section-head p{margin:3px 0 0;color:#7b8498;font-size:.86rem}
+.mi-role-customer .cn-section-link{font-size:.86rem;font-weight:700;color:#4f67ff;text-decoration:none;white-space:nowrap}
+.mi-role-customer .mi-cats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.mi-role-customer .mi-cat{min-height:124px;border-radius:16px;border:1px solid #e3e8f1;background:#fff;padding:16px;box-shadow:0 5px 18px rgba(16,24,40,.04);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.mi-role-customer .mi-cat:hover{transform:translateY(-4px);border-color:#c9d1ff;box-shadow:0 16px 34px rgba(39,53,115,.10)}
+.mi-role-customer .mi-cat-icon{background:#eef1ff!important;color:#4f67ff!important}
+.mi-role-customer .mi-cat-name{color:#111827}
+.mi-role-customer .mi-cat-count{color:#7b8498}
+.mi-role-customer .mi-providers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.mi-role-customer .mi-provider{border:1px solid #e3e8f1!important;border-radius:17px!important;box-shadow:0 7px 22px rgba(16,24,40,.045)!important;padding:17px!important}
+.mi-role-customer .mi-provider:hover{transform:translateY(-4px);box-shadow:0 18px 36px rgba(16,24,40,.09)!important;border-color:#c9d1ff!important}
+.mi-role-customer .mi-avatar{background:#10182f!important}
+.mi-role-customer .mi-btn-primary{background:#4f67ff!important;border-color:#4f67ff!important}
+.mi-role-customer .mi-btn-primary:hover{background:#3951f3!important}
+.mi-role-customer .mi-pkgs-mult,.mi-role-customer .mi-pkgs-team{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.mi-role-customer .mi-pkg{border-radius:17px!important;border:1px solid #e3e8f1!important;box-shadow:0 7px 22px rgba(16,24,40,.045)!important;background:#fff!important}
+.mi-role-customer .mi-pkg:hover{transform:translateY(-4px);border-color:#c9d1ff!important;box-shadow:0 18px 36px rgba(16,24,40,.09)!important}
+.mi-role-customer .card,.mi-role-customer .list-item,.mi-role-customer .state-box{border-color:#e3e8f1;border-radius:17px}
+.mi-role-customer .card{box-shadow:0 7px 22px rgba(16,24,40,.04)}
+.mi-role-customer .btn.primary,.mi-role-customer .btn:not(.ghost):not(.danger):not(.amber):not(.outline-teal){background:#4f67ff;border-color:#4f67ff}
+.mi-role-customer .btn.ghost{background:#fff;border-color:#d9e0eb}
+.mi-role-customer .input{border-color:#d9e0eb;background:#fff}
+.mi-role-customer .input:focus{border-color:#4f67ff;outline:0;box-shadow:0 0 0 4px rgba(79,103,255,.11)}
+.mi-role-customer .stats-row{gap:12px}
+.mi-role-customer .stat{border-radius:16px;border-color:#e3e8f1;box-shadow:0 6px 18px rgba(16,24,40,.04)}
+.mi-role-customer .dialog{border-radius:20px}
+.mi-role-customer .list-item{transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.mi-role-customer .list-item:hover{transform:translateY(-2px);border-color:#cbd3f3;box-shadow:0 12px 28px rgba(16,24,40,.07)}
+@media(max-width:1100px){.mi-role-customer .mi-cats{grid-template-columns:repeat(3,minmax(0,1fr))}.mi-role-customer .mi-providers{grid-template-columns:repeat(2,minmax(0,1fr))}.mi-role-customer .mi-pkgs-mult,.mi-role-customer .mi-pkgs-team{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.mi-role-customer .main{padding:14px 12px 90px}.mi-role-customer .cn-home{gap:18px}.mi-role-customer .cn-home-hero{border-radius:18px;padding:24px 20px 50px}.mi-role-customer .cn-home-hero h1{font-size:2.15rem}.mi-role-customer .cn-market-stats{grid-template-columns:repeat(3,minmax(90px,1fr));gap:8px}.mi-role-customer .cn-market-stat{padding:11px 10px}.mi-role-customer .cn-market-stat strong{font-size:1.03rem}.mi-role-customer .cn-search-panel{padding:0 10px;margin-top:-38px}.mi-role-customer .cn-search-box{grid-template-columns:1fr;padding:7px}.mi-role-customer .cn-search-submit{min-height:42px}.mi-role-customer .cn-localities{padding-top:9px}.mi-role-customer .mi-cats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.mi-role-customer .mi-cat{min-height:104px;padding:13px}.mi-role-customer .mi-providers,.mi-role-customer .mi-pkgs-mult,.mi-role-customer .mi-pkgs-team{grid-template-columns:1fr}.mi-role-customer .cn-section-head{align-items:flex-start}.mi-role-customer .cn-section-head h2{font-size:1.13rem}.mi-role-customer .cn-section-head p{font-size:.79rem}.mi-role-customer .mobile-nav{backdrop-filter:blur(16px)}}
+@media(max-width:520px){.mi-role-customer .cn-market-stats{grid-template-columns:repeat(3,1fr)}.mi-role-customer .cn-market-stat span{font-size:.68rem}.mi-role-customer .cn-hero-actions{gap:8px}.mi-role-customer .cn-hero-btn{flex:1 1 140px}.mi-role-customer .cn-section-link{font-size:.78rem}}
