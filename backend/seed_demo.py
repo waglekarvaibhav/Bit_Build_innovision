@@ -6,9 +6,9 @@ data to show. All contact placeholders are safe (9990000000-series numbers).
 
 By default this only seeds SQLite. To intentionally seed a connected external
 PostgreSQL/Neon database, pass --allow-external. External seeding is still
-refused if demo users already exist or if catalogue/provider/package data is
-already present, so existing customer accounts can remain while avoiding
-accidental duplication of marketplace data.
+refused if demo users already exist or if catalogue/package data is already
+present. Existing normal users and provider profiles are preserved, allowing a
+fresh marketplace catalogue to be added around accounts created during testing.
 
 Local run:  python -m backend.seed_demo
 Neon run:  python -m backend.seed_demo --allow-external
@@ -77,19 +77,21 @@ def main() -> None:
             return
 
         if not is_sqlite:
-            existing_marketplace_data = any(
+            # Existing ordinary users/provider profiles are safe to keep. Block
+            # only if catalogue/package records already exist, because those
+            # have unique names/relationships that this seed owns.
+            existing_seed_owned_data = any(
                 (
                     db.query(ServiceCategory).first(),
                     db.query(Service).first(),
-                    db.query(ProviderProfile).first(),
                     db.query(Package).first(),
                 )
             )
-            if existing_marketplace_data:
-                print("Refusing to seed Neon: marketplace catalogue/provider/package data already exists.")
+            if existing_seed_owned_data:
+                print("Refusing to seed Neon: catalogue or package data already exists.")
                 print("No data was changed.")
                 return
-            print("External database confirmed. Adding demo marketplace data without deleting existing users...")
+            print("External database confirmed. Preserving existing users/providers and adding demo marketplace data...")
 
         # ---- Service categories & services ----
         cat_specs = [
