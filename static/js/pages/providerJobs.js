@@ -17,8 +17,8 @@ const ProviderJobs = {
 
     el.innerHTML = `
       <section class="pv-page-banner">
-        <div><span class="pv-eyebrow">${icon("clock")} Work board</span><h1>Your jobs,<br>without the clutter.</h1><p>See what’s active, what’s done and what still needs attention.</p></div>
-        <div class="pv-count">${ongoing.length}</div>
+        <div><span class="pv-eyebrow">${icon("clock")} Work board</span><h1 style="font-size:2.35rem;line-height:1;letter-spacing:-.045em;margin-top:10px">My jobs</h1><p>Track active work, completion follow-ups and finished bookings.</p></div>
+        <div class="pv-count" style="font-size:2.5rem">${ongoing.length}</div>
       </section>
 
       <div class="pv-jobs-summary">
