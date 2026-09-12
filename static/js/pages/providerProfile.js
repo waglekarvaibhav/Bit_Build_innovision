@@ -1,4 +1,4 @@
-// Provider profile — professional identity, availability and service-rate console.
+// CrewNest NX provider profile — identity + service console.
 const ProviderProfilePage = {
   async render() {
     if (!requireRole("provider")) return;
@@ -14,42 +14,43 @@ const ProviderProfilePage = {
     const mine = data.services;
 
     el.innerHTML = `
-      <section class="pv-page-banner">
-        <div><span class="pv-eyebrow">${icon("user")} Provider profile</span><h1 style="font-size:2.35rem;line-height:1;letter-spacing:-.045em;margin-top:10px">My profile</h1><p>Manage your public details, availability and service rates.</p></div>
-      </section>
+      <div class="nx-topline">
+        <div class="nx-title-wrap"><div class="nx-kicker"><i></i> Professional identity</div><h1 class="nx-title">Profile</h1><p class="nx-sub">Control what customers see and how your services are priced.</p></div>
+        <div class="nx-top-actions"><span class="nx-pill ${prof.available ? "live" : ""}">${prof.available ? "Available" : "Unavailable"}</span></div>
+      </div>
 
-      <div class="pv-profile-grid">
-        <aside class="pv-profile-card">
-          <div class="pv-profile-avatar">${initials(data.user.full_name)}</div>
+      <section class="nx-profile-grid">
+        <aside class="nx-card dark nx-identity">
+          <div class="nx-big-avatar">${initials(data.user.full_name)}</div>
           <h2>${esc(data.user.full_name)}</h2>
           <p>${esc(prof.profession)} · ${esc(prof.locality)}</p>
-          <div class="pv-task-tags"><span class="pv-chip ${prof.available ? "mint" : ""}">${prof.available ? "Available for booking" : "Unavailable"}</span><span class="pv-chip">${prof.experience_years || 0} yr experience</span></div>
-          <div class="pv-profile-stat"><small style="color:rgba(255,255,255,.55)">Services offered</small><strong style="display:block;font-size:1.55rem;margin-top:4px">${mine.length}</strong></div>
-          <button class="btn ${prof.available ? "ghost" : "primary"}" id="toggle-avail" type="button" style="width:100%;margin-top:18px">${prof.available ? "Pause new bookings" : "Go available"}</button>
+          <div class="nx-tags"><span class="nx-tag lime">${prof.experience_years || 0} yr experience</span><span class="nx-tag">${mine.length} services</span></div>
+          <div class="nx-id-stat"><small>Booking status</small><strong>${prof.available ? "Live" : "Paused"}</strong></div>
+          <button class="nx-btn ${prof.available ? "light" : "lime"}" id="toggle-avail" type="button" style="width:100%;margin-top:16px">${prof.available ? "Pause new bookings" : "Go available"}</button>
         </aside>
 
-        <section class="pv-form-card">
-          <div class="pv-panel-head"><div><h2 style="margin:0">Profile details</h2><div class="pv-panel-sub">Customers see this information before they book you.</div></div></div>
+        <section class="nx-card nx-form-card">
+          <h2>Public details</h2><p>Customers see this before they decide to book.</p>
           <form id="prof-form">
             <div class="field-row"><div class="field"><label for="p-prof">Profession</label><input class="input" id="p-prof" value="${esc(prof.profession)}" /></div><div class="field"><label for="p-loc">Locality</label><input class="input" id="p-loc" list="p-loc-list" value="${esc(prof.locality)}" /><datalist id="p-loc-list"></datalist></div></div>
             <div class="field"><label for="p-bio">Bio</label><textarea class="input" id="p-bio" rows="5" placeholder="Tell customers what you specialise in…">${esc(prof.bio || "")}</textarea></div>
             <div class="field"><label for="p-exp">Experience (years)</label><input class="input" id="p-exp" type="number" min="0" value="${prof.experience_years || 0}" /></div>
-            <button class="btn primary" type="submit">Save profile</button>
+            <button class="nx-btn primary" type="submit">Save profile</button>
           </form>
         </section>
-      </div>
-
-      <section class="pv-panel" style="margin-top:16px">
-        <div class="pv-panel-head"><div><h2>Services & rates</h2><div class="pv-panel-sub">These rates feed CrewNest’s server-side pricing.</div></div><span class="pv-chip">${mine.length} active</span></div>
-        <div class="pv-service-list" id="svc-list">${mine.map(s => this._svcRow(s)).join("") || `<div class="pv-empty"><strong>No services added</strong>Add your first service below.</div>`}</div>
       </section>
 
-      <section class="pv-panel" style="margin-top:16px">
-        <div class="pv-panel-head"><div><h2>Add another service</h2><div class="pv-panel-sub">Choose a service and set at least one rate.</div></div></div>
-        <div class="field-row"><div class="field"><label for="add-svc">Service</label><select class="input" id="add-svc">${svcs.filter(s => !mine.some(m => m.service_id === s.id)).map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("") || `<option value="">All services added</option>`}</select></div>
-          <div class="field"><label for="new-h">Hourly</label><input class="input" id="new-h" type="number" min="0" step="0.01" placeholder="₹ / hr" /></div><div class="field"><label for="new-d">Daily</label><input class="input" id="new-d" type="number" min="0" step="0.01" placeholder="₹ / day" /></div><div class="field"><label for="new-m">Monthly</label><input class="input" id="new-m" type="number" min="0" step="0.01" placeholder="₹ / month" /></div></div>
-        <button class="btn primary" id="add-svc-btn" type="button">${icon("plus")} Add service</button>
-      </section>`;
+      <section class="nx-card nx-section" style="margin-top:12px">
+        <div class="nx-section-head"><div><h2>Services & rates</h2><div class="nx-meta">These rates feed CrewNest pricing.</div></div><span class="nx-tag violet">${mine.length} active</span></div>
+        <div class="nx-service-list">${mine.map(s => this._svcRow(s)).join("") || `<div class="nx-empty"><div><strong>No services yet</strong><span>Add your first service below.</span></div></div>`}</div>
+      </section>
+
+      <section class="nx-card nx-section" style="margin-top:12px">
+        <div class="nx-section-head"><div><h2>Add a service</h2><div class="nx-meta">Set at least one rate.</div></div></div>
+        <div class="field-row"><div class="field"><label for="add-svc">Service</label><select class="input" id="add-svc">${svcs.filter(s => !mine.some(m => m.service_id === s.id)).map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("") || `<option value="">All services added</option>`}</select></div><div class="field"><label for="new-h">Hourly</label><input class="input" id="new-h" type="number" min="0" step="0.01" placeholder="₹ / hr" /></div><div class="field"><label for="new-d">Daily</label><input class="input" id="new-d" type="number" min="0" step="0.01" placeholder="₹ / day" /></div><div class="field"><label for="new-m">Monthly</label><input class="input" id="new-m" type="number" min="0" step="0.01" placeholder="₹ / month" /></div></div>
+        <button class="nx-btn primary" id="add-svc-btn" type="button">${icon("plus")} Add service</button>
+      </section>
+    `;
 
     API.get("/api/localities").then(d => { el.querySelector("#p-loc-list").innerHTML = d.localities.map(l => `<option value="${esc(l)}"></option>`).join(""); }).catch(() => {});
     el.querySelector("#prof-form").addEventListener("submit", async e => {
@@ -67,6 +68,6 @@ const ProviderProfilePage = {
   },
 
   _svcRow(s) {
-    return `<div class="pv-service-row"><div><strong>${esc(s.service_name)}</strong><div class="xsmall muted">Customer-facing service</div></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end"><div class="pv-service-rates">${s.hourly_rate?`<span class="pv-chip mint">${money(s.hourly_rate)}/hr</span>`:""}${s.daily_rate?`<span class="pv-chip">${money(s.daily_rate)}/day</span>`:""}${s.monthly_rate?`<span class="pv-chip">${money(s.monthly_rate)}/mo</span>`:""}</div><button class="btn sm ghost remove-svc" data-id="${s.id}" type="button">Remove</button></div></div>`;
+    return `<div class="nx-service"><div><strong>${esc(s.service_name)}</strong><div class="nx-meta">Customer-facing service</div></div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end"><div class="nx-rate-group">${s.hourly_rate?`<span class="nx-tag lime">${money(s.hourly_rate)}/hr</span>`:""}${s.daily_rate?`<span class="nx-tag">${money(s.daily_rate)}/day</span>`:""}${s.monthly_rate?`<span class="nx-tag">${money(s.monthly_rate)}/mo</span>`:""}</div><button class="nx-btn light remove-svc" data-id="${s.id}" type="button">Remove</button></div></div>`;
   },
 };
