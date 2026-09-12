@@ -1,4 +1,4 @@
-// Provider jobs — redesigned live-work board.
+// Provider jobs — live work board with a clear booking pipeline.
 const ProviderJobs = {
   async render() {
     if (!requireRole("provider")) return;
@@ -11,32 +11,40 @@ const ProviderJobs = {
     try { rows = (await API.get("/api/providers/bookings")).bookings; }
     catch (e) { showFatal(e, el); return; }
 
+    const pending = rows.filter(b => b.status === "pending");
+    const accepted = rows.filter(b => b.status === "accepted");
+    const review = rows.filter(b => b.status === "completion_requested");
     const ongoing = rows.filter(b => ["accepted", "completion_requested"].includes(b.status));
     const completed = rows.filter(b => b.status === "completed");
-    const other = rows.filter(b => !["accepted", "completion_requested", "completed"].includes(b.status));
+    const other = rows.filter(b => !["pending", "accepted", "completion_requested", "completed"].includes(b.status));
 
     el.innerHTML = `
       <section class="pv-page-banner">
-        <div><span class="pv-eyebrow">${icon("clock")} Work board</span><h1 style="font-size:2.35rem;line-height:1;letter-spacing:-.045em;margin-top:10px">My jobs</h1><p>Track active work, completion follow-ups and finished bookings.</p></div>
-        <div class="pv-count" style="font-size:2.5rem">${ongoing.length}</div>
+        <div><span class="pv-eyebrow">${icon("clock")} Work board</span><h1>My jobs</h1><p>Track every booking from acceptance to completion.</p></div>
+        <div class="pv-count">${ongoing.length}</div>
       </section>
 
-      <div class="pv-jobs-summary">
-        <div><strong>${ongoing.length}</strong><span>Ongoing</span></div>
-        <div><strong>${completed.length}</strong><span>Completed</span></div>
-        <div><strong>${other.length}</strong><span>Other states</span></div>
-      </div>
+      <section class="pv-flow-board">
+        ${this._flowStep("Request", pending.length, "Customer asks", "01", pending.length > 0)}
+        ${this._flowStep("Accepted", accepted.length, "Work confirmed", "02", accepted.length > 0)}
+        ${this._flowStep("Review", review.length, "Awaiting customer", "03", review.length > 0)}
+        ${this._flowStep("Done", completed.length, "Completed", "04", completed.length > 0)}
+      </section>
 
-      ${this._section("Ongoing work", "Accepted jobs and completion follow-ups.", ongoing, true)}
+      ${this._section("Live work", "Accepted jobs and completion follow-ups.", ongoing, true)}
       ${this._section("Completed", "Finished work kept for your history.", completed, false)}
-      ${this._section("Other", "Pending, rejected or cancelled bookings.", other, false)}
+      ${other.length ? this._section("Other", "Rejected or cancelled bookings.", other, false) : ""}
     `;
+  },
+
+  _flowStep(label, count, sub, index, active) {
+    return `<div class="pv-flow-step ${active ? "active" : ""}"><span class="pv-flow-index">${index}</span><div class="pv-flow-dot"></div><div><strong>${count}</strong><h3>${label}</h3><small>${sub}</small></div></div>`;
   },
 
   _section(title, sub, rows, primary) {
     return `<section class="pv-panel" style="margin-bottom:14px">
       <div class="pv-panel-head"><div><h2>${title}</h2><div class="pv-panel-sub">${sub}</div></div><span class="pv-chip ${primary ? "mint" : ""}">${rows.length}</span></div>
-      <div class="pv-task-list">${rows.length ? rows.map(b => this._jobCard(b, primary)).join("") : `<div class="pv-empty"><strong>Nothing here</strong>${primary ? "Accepted jobs will show up here." : "No bookings in this state."}</div>`}</div>
+      <div class="pv-task-list">${rows.length ? rows.map(b => this._jobCard(b, primary)).join("") : `<div class="pv-empty"><strong>Nothing here yet</strong>${primary ? "Accepted work will appear here as soon as you confirm a request." : "No bookings in this state."}</div>`}</div>
     </section>`;
   },
 
