@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     # --- Database ---
     # Leave empty to use the local SQLite demo database.
     database_url: str = ""
+    # Optional direct/unpooled PostgreSQL URL for schema/admin operations.
+    database_url_unpooled: str = ""
 
     # --- Security ---
     # Auto-generate a dev secret if none supplied (stable only for the process
@@ -60,6 +62,13 @@ class Settings(BaseSettings):
         if self.database_url:
             return self.database_url
         return f"sqlite:///{(BASE_DIR / 'crewneat.db').as_posix()}"
+
+    @property
+    def sqlalchemy_admin_database_url(self) -> str:
+        """Direct DB URL for schema/admin tasks, falling back to app URL."""
+        if self.database_url_unpooled:
+            return self.database_url_unpooled
+        return self.sqlalchemy_database_url
 
     @property
     def origin_list(self) -> list[str]:
