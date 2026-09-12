@@ -53,7 +53,7 @@ const ProviderPackages = {
   _modal(svcs, pkg) {
     const me = Auth.get();
     const wrap = document.createElement("div");
-    wrap.className = "dialog-backdrop open";
+    wrap.className = "dialog-backdrop open nx-provider-dialog";
     wrap.setAttribute("role","dialog"); wrap.setAttribute("aria-modal","true");
     const initialType = pkg ? pkg.package_type : "multitasking";
     wrap.innerHTML = `<div class="dialog">
@@ -70,7 +70,7 @@ const ProviderPackages = {
         <div class="field-row"><div class="field"><label for="pm-loc">Locality</label><input class="input" id="pm-loc" list="pm-loc-list" value="${pkg ? esc(pkg.locality) : ""}" required /><datalist id="pm-loc-list"></datalist></div><div class="field"><label for="pm-rate">Whole-package hourly rate</label><input class="input" id="pm-rate" type="number" min="0.01" step="0.01" value="${pkg ? pkg.hourly_rate : ""}" required /></div></div>
         <div class="field"><label>Included services <span class="xsmall muted">(multitasking requires 2+)</span></label><div class="chips-row" id="pm-services"></div></div>
         <div class="field" id="pm-members-field" style="${initialType === "team" ? "" : "display:none"}"><label>Crew members <span class="xsmall muted">(team requires 2+ and one lead)</span></label><div id="pm-members" class="col"></div></div>
-        <div class="dialog-actions"><button class="btn ghost" id="pm-close" type="button">Cancel</button><button class="btn primary" id="pm-submit" type="submit">${pkg ? "Save changes" : "Publish package"}</button></div>
+        <div class="dialog-actions"><button class="nx-btn light" id="pm-close" type="button">Cancel</button><button class="nx-btn primary" id="pm-submit" type="submit">${pkg ? "Save changes" : "Publish package"}</button></div>
       </form>
     </div>`;
     document.body.appendChild(wrap);
@@ -93,7 +93,7 @@ const ProviderPackages = {
     const memberWrap = wrap.querySelector("#pm-members");
     API.get("/api/providers").then(all => {
       const others = all.filter(p => p.user_id && p.user_id !== me.user_id);
-      memberWrap.innerHTML = others.map(p => `<div class="between" style="border-bottom:1px solid var(--nx-line);padding:9px 0"><label style="display:flex;align-items:center;gap:9px"><input type="checkbox" class="pm-check" data-id="${p.user_id}" ${memberSet.has(p.user_id)?"checked":""}/><span>${esc(p.full_name)} <small class="muted">· ${esc(p.profession || "Provider")}</small></span></label><label class="xsmall muted"><input type="radio" name="pm-lead" value="${p.user_id}" ${leadId===p.user_id?"checked":""} ${memberSet.has(p.user_id)?"":"disabled"}/> lead</label></div>`).join("") || `<p class="xsmall muted">No other providers registered yet.</p>`;
+      memberWrap.innerHTML = others.map(p => `<div class="between" style="border-bottom:1px solid #dedfd9;padding:9px 0"><label style="display:flex;align-items:center;gap:9px"><input type="checkbox" class="pm-check" data-id="${p.user_id}" ${memberSet.has(p.user_id)?"checked":""}/><span>${esc(p.full_name)} <small class="muted">· ${esc(p.profession || "Provider")}</small></span></label><label class="xsmall muted"><input type="radio" name="pm-lead" value="${p.user_id}" ${leadId===p.user_id?"checked":""} ${memberSet.has(p.user_id)?"":"disabled"}/> lead</label></div>`).join("") || `<p class="xsmall muted">No other providers registered yet.</p>`;
       memberWrap.querySelectorAll(".pm-check").forEach(c => c.addEventListener("change",()=>{ const r=memberWrap.querySelector(`input[name="pm-lead"][value="${c.dataset.id}"]`); r.disabled=!c.checked; if(!c.checked&&r.checked){r.checked=false;leadId=null;} }));
     }).catch(()=> memberWrap.innerHTML=`<p class="xsmall muted">Could not load providers.</p>`);
 
