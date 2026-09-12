@@ -18,13 +18,13 @@ const ProviderPackages = {
     const multi = active.filter(p => p.package_type === "multitasking");
 
     el.innerHTML = `
-      <section style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end;padding:8px 2px 24px;border-bottom:1px solid var(--ps-line);margin-bottom:18px">
+      <section style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end;padding:8px 2px 18px;border-bottom:1px solid var(--cn-line);margin-bottom:16px">
         <div>
           <span class="pv-studio-label">${icon("box")} PACKAGE STUDIO</span>
-          <h1 style="font-size:clamp(3rem,6vw,6rem);line-height:.86;letter-spacing:-.075em;margin:16px 0 12px;max-width:780px">Turn work into<br><span style="color:var(--ps-coral)">products.</span></h1>
-          <p style="max-width:620px;margin:0;color:var(--ps-muted);line-height:1.6">Build clear service bundles and teams that customers can understand and book fast.</p>
+          <h1 style="font-size:2.45rem;line-height:1;letter-spacing:-.05em;margin:10px 0 8px">Package studio</h1>
+          <p style="max-width:620px;margin:0;color:var(--cn-muted);line-height:1.55">Create and manage service bundles and team packages.</p>
         </div>
-        <button class="btn primary" id="create-pkg" style="min-height:46px;padding-inline:18px">${icon("plus")} New package</button>
+        <button class="btn primary" id="create-pkg" style="min-height:42px;padding-inline:16px">${icon("plus")} New package</button>
       </section>
 
       <div class="pv-metric-strip" style="margin-top:0">
@@ -100,7 +100,7 @@ const ProviderPackages = {
     const memberWrap = wrap.querySelector("#pm-members");
     API.get("/api/providers").then(all => {
       const others = all.filter(p => p.user_id && p.user_id !== me.user_id);
-      memberWrap.innerHTML = others.map(p => `<div class="between" style="border-bottom:1px solid var(--ps-line);padding:9px 0"><label style="display:flex;align-items:center;gap:9px"><input type="checkbox" class="pm-check" data-id="${p.user_id}" ${memberSet.has(p.user_id)?"checked":""}/><span>${esc(p.full_name)} <small class="muted">· ${esc(p.profession || "Provider")}</small></span></label><label class="xsmall muted"><input type="radio" name="pm-lead" value="${p.user_id}" ${leadId===p.user_id?"checked":""} ${memberSet.has(p.user_id)?"":"disabled"}/> lead</label></div>`).join("") || `<p class="xsmall muted">No other providers registered yet.</p>`;
+      memberWrap.innerHTML = others.map(p => `<div class="between" style="border-bottom:1px solid var(--cn-line);padding:9px 0"><label style="display:flex;align-items:center;gap:9px"><input type="checkbox" class="pm-check" data-id="${p.user_id}" ${memberSet.has(p.user_id)?"checked":""}/><span>${esc(p.full_name)} <small class="muted">· ${esc(p.profession || "Provider")}</small></span></label><label class="xsmall muted"><input type="radio" name="pm-lead" value="${p.user_id}" ${leadId===p.user_id?"checked":""} ${memberSet.has(p.user_id)?"":"disabled"}/> lead</label></div>`).join("") || `<p class="xsmall muted">No other providers registered yet.</p>`;
       memberWrap.querySelectorAll(".pm-check").forEach(c => c.addEventListener("change",()=>{ const r=memberWrap.querySelector(`input[name="pm-lead"][value="${c.dataset.id}"]`); r.disabled=!c.checked; if(!c.checked&&r.checked){r.checked=false;leadId=null;} }));
     }).catch(()=> memberWrap.innerHTML=`<p class="xsmall muted">Could not load providers.</p>`);
 
