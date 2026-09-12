@@ -1,4 +1,4 @@
-// Provider package studio — list, create, edit and archive packages.
+// Provider package studio — open canvas, no dashboard/banner header.
 const ProviderPackages = {
   async render() {
     if (!requireRole("provider")) return;
@@ -18,15 +18,20 @@ const ProviderPackages = {
     const multi = active.filter(p => p.package_type === "multitasking");
 
     el.innerHTML = `
-      <section class="pv-page-banner">
-        <div><span class="pv-eyebrow">${icon("box")} Package studio</span><h1>Package your<br>best work.</h1><p>Build clear offers customers can understand and book quickly.</p></div>
-        <button class="btn primary" id="create-pkg">${icon("plus")} New package</button>
+      <section style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end;padding:8px 2px 24px;border-bottom:1px solid var(--ps-line);margin-bottom:18px">
+        <div>
+          <span class="pv-studio-label">${icon("box")} PACKAGE STUDIO</span>
+          <h1 style="font-size:clamp(3rem,6vw,6rem);line-height:.86;letter-spacing:-.075em;margin:16px 0 12px;max-width:780px">Turn work into<br><span style="color:var(--ps-coral)">products.</span></h1>
+          <p style="max-width:620px;margin:0;color:var(--ps-muted);line-height:1.6">Build clear service bundles and teams that customers can understand and book fast.</p>
+        </div>
+        <button class="btn primary" id="create-pkg" style="min-height:46px;padding-inline:18px">${icon("plus")} New package</button>
       </section>
 
-      <div class="pv-jobs-summary">
-        <div><strong>${active.length}</strong><span>Published</span></div>
-        <div><strong>${multi.length}</strong><span>Multitasking</span></div>
-        <div><strong>${teams.length}</strong><span>Team packages</span></div>
+      <div class="pv-metric-strip" style="margin-top:0">
+        <div><span>Published</span><strong>${active.length}</strong><small>live offers</small></div>
+        <div><span>Multitasking</span><strong>${multi.length}</strong><small>bundles</small></div>
+        <div><span>Teams</span><strong>${teams.length}</strong><small>crew offers</small></div>
+        <div><span>Total</span><strong>${pkgs.length}</strong><small>all packages</small></div>
       </div>
 
       <section class="pv-panel">
@@ -35,7 +40,7 @@ const ProviderPackages = {
       </section>`;
 
     el.querySelectorAll("[data-archive]").forEach(b => b.addEventListener("click", e => { e.preventDefault(); this._archive(b.dataset.archive, b); }));
-    el.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", e => { e.preventDefault(); const p = pkgs.find(x => x.id == b.dataset.edit); this._modal(svcs, p); }));
+    el.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", e => { e.preventDefault(); this._modal(svcs, pkgs.find(x => x.id == b.dataset.edit)); }));
     document.getElementById("create-pkg").addEventListener("click", () => this._modal(svcs, null));
   },
 
@@ -46,7 +51,7 @@ const ProviderPackages = {
       <h3>${esc(p.name)}</h3>
       <p class="small muted">${esc(p.locality)} · ${p.service_count} services · ${members}</p>
       <div class="pv-task-tags">${p.services.slice(0,4).map(s => `<span class="pv-chip">${esc(s)}</span>`).join("")}</div>
-      <div class="between" style="margin-top:16px"><div class="pv-package-rate">${money(p.hourly_rate)}<small>/hr</small></div></div>
+      <div class="pv-package-rate" style="margin-top:16px">${money(p.hourly_rate)}<small>/hr</small></div>
       ${p.status === "archived" ? `<p class="xsmall muted mt-1">Archived — existing bookings remain unchanged.</p>` : `<div class="pv-package-actions"><button class="btn sm ghost" data-edit="${p.id}">Edit package</button><button class="btn sm danger" data-archive="${p.id}">Archive</button></div>`}
     </article>`;
   },
@@ -54,12 +59,13 @@ const ProviderPackages = {
   _modal(svcs, pkg) {
     const me = Auth.get();
     const wrap = document.createElement("div");
-    wrap.className = "dialog-backdrop open"; wrap.setAttribute("role","dialog"); wrap.setAttribute("aria-modal","true");
+    wrap.className = "dialog-backdrop open";
+    wrap.setAttribute("role","dialog"); wrap.setAttribute("aria-modal","true");
     const initialType = pkg ? pkg.package_type : "multitasking";
     wrap.innerHTML = `<div class="dialog">
-      <span class="pv-eyebrow" style="background:var(--pv-soft);color:var(--pv-forest)">${pkg ? "Edit offer" : "New offer"}</span>
+      <span class="pv-studio-label">${pkg ? "EDIT OFFER" : "NEW OFFER"}</span>
       <h2>${pkg ? "Refine your package" : "Build a bookable package"}</h2>
-      <p class="small muted">Keep the offer simple: what it includes, where you deliver it, who is involved and the whole-package hourly rate.</p>
+      <p class="small muted">Define the outcome, location, services, team and whole-package hourly rate.</p>
       <form id="pkg-form" novalidate>
         <div class="field"><label>Package type</label><div class="chips-row" id="type-tabs">
           <button type="button" class="pill-btn ${initialType === "multitasking" ? "active" : ""}" data-type="multitasking">Multitasking</button>
@@ -76,7 +82,8 @@ const ProviderPackages = {
     </div>`;
     document.body.appendChild(wrap);
     const close = () => wrap.remove();
-    wrap.addEventListener("click", e => { if (e.target === wrap) close(); }); wrap.querySelector("#pm-close").addEventListener("click", close);
+    wrap.addEventListener("click", e => { if (e.target === wrap) close(); });
+    wrap.querySelector("#pm-close").addEventListener("click", close);
     document.addEventListener("keydown", function escKey(e){ if(e.key === "Escape"){ close(); document.removeEventListener("keydown",escKey); }});
 
     let packageType = initialType;
@@ -93,7 +100,7 @@ const ProviderPackages = {
     const memberWrap = wrap.querySelector("#pm-members");
     API.get("/api/providers").then(all => {
       const others = all.filter(p => p.user_id && p.user_id !== me.user_id);
-      memberWrap.innerHTML = others.map(p => `<div class="between" style="border-bottom:1px solid var(--pv-line);padding:9px 0"><label style="display:flex;align-items:center;gap:9px"><input type="checkbox" class="pm-check" data-id="${p.user_id}" ${memberSet.has(p.user_id)?"checked":""}/><span>${esc(p.full_name)} <small class="muted">· ${esc(p.profession || "Provider")}</small></span></label><label class="xsmall muted"><input type="radio" name="pm-lead" value="${p.user_id}" ${leadId===p.user_id?"checked":""} ${memberSet.has(p.user_id)?"":"disabled"}/> lead</label></div>`).join("") || `<p class="xsmall muted">No other providers registered yet.</p>`;
+      memberWrap.innerHTML = others.map(p => `<div class="between" style="border-bottom:1px solid var(--ps-line);padding:9px 0"><label style="display:flex;align-items:center;gap:9px"><input type="checkbox" class="pm-check" data-id="${p.user_id}" ${memberSet.has(p.user_id)?"checked":""}/><span>${esc(p.full_name)} <small class="muted">· ${esc(p.profession || "Provider")}</small></span></label><label class="xsmall muted"><input type="radio" name="pm-lead" value="${p.user_id}" ${leadId===p.user_id?"checked":""} ${memberSet.has(p.user_id)?"":"disabled"}/> lead</label></div>`).join("") || `<p class="xsmall muted">No other providers registered yet.</p>`;
       memberWrap.querySelectorAll(".pm-check").forEach(c => c.addEventListener("change",()=>{ const r=memberWrap.querySelector(`input[name="pm-lead"][value="${c.dataset.id}"]`); r.disabled=!c.checked; if(!c.checked&&r.checked){r.checked=false;leadId=null;} }));
     }).catch(()=> memberWrap.innerHTML=`<p class="xsmall muted">Could not load providers.</p>`);
 
