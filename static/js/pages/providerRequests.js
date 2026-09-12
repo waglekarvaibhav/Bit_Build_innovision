@@ -16,8 +16,8 @@ const ProviderRequests = {
 
     el.innerHTML = `
       <section class="pv-page-banner">
-        <div><span class="pv-eyebrow">${icon("inbox")} Request inbox</span><h1>Decide fast.<br>Keep work moving.</h1><p>Review each request, schedule and quote before accepting the slot.</p></div>
-        <div class="pv-count">${pending.length}</div>
+        <div><span class="pv-eyebrow">${icon("inbox")} Request inbox</span><h1 style="font-size:2.35rem;line-height:1;letter-spacing:-.045em;margin-top:10px">Requests</h1><p>Review new booking requests, schedules and quotes before accepting a slot.</p></div>
+        <div class="pv-count" style="font-size:2.5rem">${pending.length}</div>
       </section>
 
       <section class="pv-panel">
