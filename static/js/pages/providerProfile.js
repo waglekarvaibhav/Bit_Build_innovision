@@ -15,7 +15,7 @@ const ProviderProfilePage = {
 
     el.innerHTML = `
       <section class="pv-page-banner">
-        <div><span class="pv-eyebrow">${icon("user")} Provider profile</span><h1>Your storefront<br>starts here.</h1><p>Keep your public profile accurate and your service rates easy to understand.</p></div>
+        <div><span class="pv-eyebrow">${icon("user")} Provider profile</span><h1 style="font-size:2.35rem;line-height:1;letter-spacing:-.045em;margin-top:10px">My profile</h1><p>Manage your public details, availability and service rates.</p></div>
       </section>
 
       <div class="pv-profile-grid">
@@ -24,7 +24,7 @@ const ProviderProfilePage = {
           <h2>${esc(data.user.full_name)}</h2>
           <p>${esc(prof.profession)} · ${esc(prof.locality)}</p>
           <div class="pv-task-tags"><span class="pv-chip ${prof.available ? "mint" : ""}">${prof.available ? "Available for booking" : "Unavailable"}</span><span class="pv-chip">${prof.experience_years || 0} yr experience</span></div>
-          <div class="pv-profile-stat"><small style="color:rgba(255,255,255,.55)">Services offered</small><strong style="display:block;font-size:2rem;margin-top:4px">${mine.length}</strong></div>
+          <div class="pv-profile-stat"><small style="color:rgba(255,255,255,.55)">Services offered</small><strong style="display:block;font-size:1.55rem;margin-top:4px">${mine.length}</strong></div>
           <button class="btn ${prof.available ? "ghost" : "primary"}" id="toggle-avail" type="button" style="width:100%;margin-top:18px">${prof.available ? "Pause new bookings" : "Go available"}</button>
         </aside>
 
