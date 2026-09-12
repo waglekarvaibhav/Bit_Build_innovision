@@ -1,4 +1,4 @@
-// CrewNest NX provider jobs — kanban-style live work board.
+// CrewNest Atlas provider work — compact progress lanes.
 const ProviderJobs = {
   async render() {
     if (!requireRole("provider")) return;
@@ -18,42 +18,38 @@ const ProviderJobs = {
     const closed = rows.filter(b => ["rejected","cancelled"].includes(b.status));
 
     el.innerHTML = `
-      <div class="nx-topline">
-        <div class="nx-title-wrap"><div class="nx-kicker"><i></i> Live operations</div><h1 class="nx-title">Jobs</h1><p class="nx-sub">Move work from accepted to reviewed to complete.</p></div>
-        <div class="nx-top-actions"><span class="nx-pill">${active.length + review.length} live</span><span class="nx-pill">${completed.length} completed</span></div>
-      </div>
+      <header class="atlas-pagehead">
+        <div><div class="atlas-kicker">Work rail</div><h1>Work</h1><p>Track jobs from acceptance through customer review and completion.</p></div>
+        <div class="atlas-actions"><span class="atlas-status ${active.length + review.length ? "live" : ""}">${active.length + review.length} live</span><span class="atlas-tag mint">${completed.length} done</span></div>
+      </header>
 
-      <section class="nx-pipeline">
-        ${this._pipe("Requests", pending.length)}
-        ${this._pipe("Accepted", active.length)}
-        ${this._pipe("Review", review.length)}
-        ${this._pipe("Done", completed.length)}
+      <section class="atlas-progress-rail">
+        ${this._step("Requests",pending.length)}
+        ${this._step("Accepted",active.length)}
+        ${this._step("Review",review.length)}
+        ${this._step("Done",completed.length)}
       </section>
 
-      <section class="nx-kanban">
-        ${this._column("Active", "Work currently in progress.", active, "active")}
-        ${this._column("Awaiting review", "Completion requested; waiting on customer.", review, "review")}
-        ${this._column("Completed", "Finished jobs and history.", completed, "done")}
+      <section class="atlas-job-lanes">
+        ${this._lane("In progress","Accepted jobs currently being delivered.",active,"blue")}
+        ${this._lane("Customer review","Completion requested; waiting for confirmation.",review,"amber")}
+        ${this._lane("Completed","Finished work kept in your history.",completed,"mint")}
       </section>
 
-      ${closed.length ? `<section class="nx-card nx-section" style="margin-top:12px"><div class="nx-section-head"><h2>Closed without completion</h2><span class="nx-tag">${closed.length}</span></div><div class="nx-history-list">${closed.map(b => this._closedRow(b)).join("")}</div></section>` : ""}
+      ${closed.length ? `<section class="atlas-card atlas-history" style="margin-top:12px;min-height:auto"><div class="atlas-card-head"><div><h2>Closed without completion</h2><p>Rejected or cancelled bookings.</p></div><span class="atlas-count">${closed.length}</span></div><div class="atlas-history-list">${closed.map(b => this._closed(b)).join("")}</div></section>` : ""}
     `;
   },
 
-  _pipe(label, count) {
-    return `<div class="nx-card nx-pipe"><small>${label}</small><strong>${count}</strong></div>`;
+  _step(label,count){return `<article class="atlas-card atlas-progress-step"><small>${label}</small><strong>${count}</strong></article>`;},
+
+  _lane(title,sub,rows,tone){
+    return `<article class="atlas-card atlas-job-lane"><div class="atlas-card-head"><div><h2>${title}</h2><p>${sub}</p></div><span class="atlas-count">${rows.length}</span></div>${rows.length ? rows.map(b=>this._job(b,tone)).join("") : `<div class="atlas-empty"><div><strong>Nothing here</strong><span>${title === "In progress" ? "Accepted jobs will appear here." : title === "Customer review" ? "Completion requests will appear here." : "Completed jobs will appear here."}</span></div></div>`}</article>`;
   },
 
-  _column(title, sub, rows, kind) {
-    return `<article class="nx-card nx-kanban-col"><div class="nx-kanban-head"><div><h2>${title}</h2><div class="nx-meta">${sub}</div></div><span class="nx-count">${rows.length}</span></div>${rows.length ? rows.map(b => this._jobCard(b, kind)).join("") : `<div class="nx-empty"><div><strong>Nothing here</strong><span>${kind === "active" ? "Accepted jobs will appear here." : kind === "review" ? "Completion requests will appear here." : "Completed work will appear here."}</span></div></div>`}</article>`;
+  _job(b,tone){
+    const type=b.package_type_snapshot ? `${b.package_type_snapshot}${b.package_name_snapshot ? " · "+b.package_name_snapshot : ""}` : "Individual";
+    return `<a class="atlas-job-card" href="/provider-booking/${b.id}"><strong>${esc(b.item_description)}</strong><small>${esc(b.customer_name)} · ${fmtDate(b.booking_date)} · ${esc(b.booking_time)}</small><div class="atlas-tags"><span class="atlas-tag ${tone}">${STATUS_LABEL[b.status] || esc(b.status)}</span><span class="atlas-tag">${esc(type)}</span></div><div class="atlas-job-foot"><b>${money(b.quoted_price)}</b><span>OPEN →</span></div></a>`;
   },
 
-  _jobCard(b, kind) {
-    const type = b.package_type_snapshot ? `${b.package_type_snapshot}${b.package_name_snapshot ? " · "+b.package_name_snapshot : ""}` : "Individual";
-    return `<a class="nx-job" href="/provider-booking/${b.id}"><strong>${esc(b.item_description)}</strong><small>${esc(b.customer_name)} · ${fmtDate(b.booking_date)} · ${esc(b.booking_time)}</small><div class="nx-tags"><span class="nx-tag ${kind === "done" ? "lime" : "violet"}">${STATUS_LABEL[b.status] || esc(b.status)}</span><span class="nx-tag">${esc(type)}</span></div><div class="nx-job-foot"><b>${money(b.quoted_price)}</b><span>OPEN →</span></div></a>`;
-  },
-
-  _closedRow(b) {
-    return `<a class="nx-history-item" href="/provider-booking/${b.id}"><div><strong>${esc(b.item_description)}</strong><small>${esc(b.customer_name)} · ${STATUS_LABEL[b.status] || esc(b.status)}</small></div><b>${money(b.quoted_price)}</b></a>`;
-  },
+  _closed(b){return `<a class="atlas-history-row" href="/provider-booking/${b.id}"><div><strong>${esc(b.item_description)}</strong><span>${esc(b.customer_name)} · ${STATUS_LABEL[b.status] || esc(b.status)}</span></div><b>${money(b.quoted_price)}</b></a>`;}
 };
