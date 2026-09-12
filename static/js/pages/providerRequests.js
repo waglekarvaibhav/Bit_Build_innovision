@@ -1,4 +1,4 @@
-// Provider requests — redesigned action-first inbox.
+// Provider requests — action-first booking inbox.
 const ProviderRequests = {
   async render() {
     if (!requireRole("provider")) return;
@@ -13,21 +13,28 @@ const ProviderRequests = {
 
     const pending = rows.filter(b => b.status === "pending");
     const history = rows.filter(b => b.status !== "pending");
+    const accepted = history.filter(b => ["accepted","completion_requested","completed"].includes(b.status));
 
     el.innerHTML = `
       <section class="pv-page-banner">
-        <div><span class="pv-eyebrow">${icon("inbox")} Request inbox</span><h1 style="font-size:2.35rem;line-height:1;letter-spacing:-.045em;margin-top:10px">Requests</h1><p>Review new booking requests, schedules and quotes before accepting a slot.</p></div>
-        <div class="pv-count" style="font-size:2.5rem">${pending.length}</div>
+        <div><span class="pv-eyebrow">${icon("inbox")} Request inbox</span><h1>Requests</h1><p>Review customer requests and respond without leaving the inbox.</p></div>
+        <div class="pv-count">${pending.length}</div>
       </section>
 
-      <section class="pv-panel">
-        <div class="pv-panel-head"><div><h2>Waiting for you</h2><div class="pv-panel-sub">${pending.length ? `${pending.length} request${pending.length===1?"":"s"} need a response.` : "You’re all caught up."}</div></div></div>
-        <div id="pending-list">${this._rows(pending, true) || `<div class="pv-empty"><strong>No pending requests</strong>New customer requests will appear here.</div>`}</div>
+      <section class="pv-inbox-strip" aria-label="Request summary">
+        <div class="urgent"><span>Needs reply</span><strong>${pending.length}</strong><small>${pending.length ? "Action required" : "Inbox clear"}</small></div>
+        <div><span>Handled</span><strong>${history.length}</strong><small>Past decisions</small></div>
+        <div><span>Moved to jobs</span><strong>${accepted.length}</strong><small>Accepted or completed</small></div>
       </section>
 
-      <section class="pv-panel" style="margin-top:16px">
-        <div class="pv-panel-head"><div><h2>Request history</h2><div class="pv-panel-sub">Accepted, rejected and completed decisions.</div></div></div>
-        <div id="history-list">${this._rows(history, false) || `<div class="pv-empty">No handled requests yet.</div>`}</div>
+      <section class="pv-panel pv-priority-panel">
+        <div class="pv-panel-head"><div><h2>Waiting for you</h2><div class="pv-panel-sub">${pending.length ? `${pending.length} request${pending.length===1?"":"s"} need a response.` : "You’re all caught up."}</div></div><span class="pv-chip coral">${pending.length}</span></div>
+        <div id="pending-list">${this._rows(pending, true) || `<div class="pv-empty pv-empty-success"><span>✓</span><strong>Inbox clear</strong><small>New customer requests will appear here automatically.</small></div>`}</div>
+      </section>
+
+      <section class="pv-panel" style="margin-top:14px">
+        <div class="pv-panel-head"><div><h2>Request history</h2><div class="pv-panel-sub">Accepted, rejected and completed decisions.</div></div><span class="pv-chip">${history.length}</span></div>
+        <div id="history-list">${this._rows(history, false) || `<div class="pv-empty"><strong>No history yet</strong>Your handled requests will stay here for reference.</div>`}</div>
       </section>
     `;
     el.querySelectorAll("[data-accept]").forEach(b => b.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); this._act(b, "accept"); }));
@@ -36,7 +43,7 @@ const ProviderRequests = {
 
   _rows(rows, actionable) {
     return rows.map(b => `
-      <article class="pv-request">
+      <article class="pv-request ${actionable ? "actionable" : ""}">
         <a href="/provider-booking/${b.id}" style="text-decoration:none;color:inherit;min-width:0">
           <div class="pv-request-top">
             <span class="pv-request-avatar">${initials(b.customer_name)}</span>
