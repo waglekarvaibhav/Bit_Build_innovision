@@ -31,16 +31,16 @@ const ProviderHome = {
       <section class="pv-workboard" style="align-items:stretch;margin-bottom:14px">
         <div class="pv-work-column" style="background:transparent;border:0;padding:10px 4px 8px 2px">
           <span class="pv-studio-label">${icon("sparkles")} PROVIDER STUDIO</span>
-          <h1 style="font-size:clamp(3rem,6vw,6.3rem);line-height:.84;letter-spacing:-.075em;margin:18px 0 14px;max-width:760px">${esc(first)},<br>your work is<br><span style="color:var(--ps-coral)">in motion.</span></h1>
-          <p style="max-width:620px;color:var(--ps-muted);font-size:.95rem;line-height:1.65;margin:0">A live workspace for requests, jobs and service products — built around what needs your attention now.</p>
-          <div class="pv-quick-links" style="margin-top:22px">
-            <a href="/provider-requests" style="color:var(--ps-ink);background:#fff;border-color:var(--ps-line)">${icon("inbox")} Requests <b>${pending.length}</b></a>
-            <a href="/provider-jobs" style="color:var(--ps-ink);background:#fff;border-color:var(--ps-line)">${icon("clock")} Live jobs <b>${ongoing.length}</b></a>
-            <a href="/provider-packages" style="color:var(--ps-ink);background:#fff;border-color:var(--ps-line)">${icon("box")} Studio</a>
+          <h1 style="font-size:clamp(2.6rem,4.4vw,4.5rem);line-height:.94;letter-spacing:-.06em;margin:16px 0 14px;max-width:720px">${esc(first)}, here’s your <span style="color:var(--cn-coral)">workday.</span></h1>
+          <p style="max-width:620px;color:var(--cn-muted);font-size:.92rem;line-height:1.6;margin:0">Requests, active jobs and service products in one place.</p>
+          <div class="pv-quick-links" style="margin-top:20px">
+            <a href="/provider-requests">${icon("inbox")} Requests <b>${pending.length}</b></a>
+            <a href="/provider-jobs">${icon("clock")} Live jobs <b>${ongoing.length}</b></a>
+            <a href="/provider-packages">${icon("box")} Studio</a>
           </div>
         </div>
 
-        <aside class="pv-now-card" style="border-radius:26px;min-height:320px">
+        <aside class="pv-now-card" style="border-radius:24px;min-height:260px">
           <div class="pv-now-top">
             <span class="pv-now-status"><i class="${available ? "on" : ""}"></i>${available ? "Bookable" : "Paused"}</span>
             <button id="toggle-avail">${available ? "Pause" : "Go live"}</button>
