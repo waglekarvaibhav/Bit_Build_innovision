@@ -1,4 +1,4 @@
-// Shared app shell rendering: customer shell + distinctive provider workspace rail.
+// Shared app shell rendering: customer shell + CrewNest NX provider dock.
 const SIDEBAR_LINKS_BY_ROLE = {
   customer: [
     { key: "home", label: "Home", icon: "home", href: "/home" },
@@ -9,8 +9,8 @@ const SIDEBAR_LINKS_BY_ROLE = {
     { key: "profile", label: "Profile", icon: "user", href: "/profile" },
   ],
   provider: [
-    { key: "home", label: "Workspace", icon: "home", href: "/provider-home" },
-    { key: "requests", label: "Requests", icon: "inbox", href: "/provider-requests" },
+    { key: "home", label: "Home", icon: "home", href: "/provider-home" },
+    { key: "requests", label: "Inbox", icon: "inbox", href: "/provider-requests" },
     { key: "jobs", label: "Jobs", icon: "clock", href: "/provider-jobs" },
     { key: "packages", label: "Studio", icon: "box", href: "/provider-packages" },
     { key: "profile", label: "Profile", icon: "user", href: "/provider-profile" },
@@ -27,7 +27,7 @@ const AppShell = {
 
     const mobileLinks = me.role === "provider" ? [
       { key: "home", label: "Home", icon: "home", href: "/provider-home" },
-      { key: "requests", label: "Requests", icon: "inbox", href: "/provider-requests" },
+      { key: "requests", label: "Inbox", icon: "inbox", href: "/provider-requests" },
       { key: "jobs", label: "Jobs", icon: "clock", href: "/provider-jobs" },
       { key: "packages", label: "Studio", icon: "box", href: "/provider-packages" },
       { key: "profile", label: "Profile", icon: "user", href: "/provider-profile" },
@@ -43,28 +43,19 @@ const AppShell = {
     ).join("");
 
     if (me.role === "provider") {
-      const railNav = links.map((l, i) => `
-        <a href="${l.href}" class="pv-rail-link ${l.key === activeKey ? "active" : ""}" data-nav="${l.key}">
-          <span class="pv-rail-index">0${i + 1}</span>
-          <span class="pv-rail-icon">${icon(l.icon)}</span>
-          <span class="pv-rail-label">${l.label}</span>
+      const dockNav = links.map(l => `
+        <a href="${l.href}" class="${l.key === activeKey ? "active" : ""}" data-nav="${l.key}" aria-label="${l.label}">
+          ${icon(l.icon)}<span>${l.label}</span>
         </a>`).join("");
 
       app.innerHTML = `
         <div class="app mi-root mi-role-provider">
-          <aside class="pv-rail" aria-label="Provider navigation">
-            <a class="pv-rail-brand" href="/provider-home" aria-label="CrewNest provider home">
-              <span class="pv-brand-mark">C<span>N</span></span>
-              <span class="pv-brand-copy"><strong>CrewNest</strong><small>work studio</small></span>
-            </a>
-            <div class="pv-rail-rule"></div>
-            <nav class="pv-rail-nav">${railNav}</nav>
-            <div class="pv-rail-spacer"></div>
-            <div class="pv-rail-user">
-              <span class="pv-user-avatar">${initials(me.full_name)}</span>
-              <span class="pv-user-copy"><strong>${esc(me.full_name)}</strong><small>Provider</small></span>
-            </div>
-            <button class="pv-signout" id="logout-btn">${icon("logout")}<span>Sign out</span></button>
+          <aside class="nx-dock" aria-label="Provider navigation">
+            <a class="nx-brand" href="/provider-home" aria-label="CrewNest provider home"><span>CN</span><small>NX</small></a>
+            <nav class="nx-nav">${dockNav}</nav>
+            <div class="nx-dock-spacer"></div>
+            <div class="nx-person" title="${esc(me.full_name)}">${initials(me.full_name)}</div>
+            <button class="nx-logout" id="logout-btn" aria-label="Sign out">${icon("logout")}</button>
           </aside>
           <main class="main" id="main"></main>
           <nav class="mobile-nav" aria-label="Mobile navigation">${mobileNav}</nav>
