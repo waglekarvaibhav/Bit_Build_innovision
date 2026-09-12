@@ -1,4 +1,4 @@
-// Provider package studio — open canvas, no dashboard/banner header.
+// Provider package studio — premium service-product workspace.
 const ProviderPackages = {
   async render() {
     if (!requireRole("provider")) return;
@@ -10,7 +10,8 @@ const ProviderPackages = {
     let pkgs, svcs;
     try {
       const [p, s] = await Promise.all([API.get("/api/providers/me/packages"), API.get("/api/services")]);
-      pkgs = p.packages; svcs = s;
+      pkgs = p.packages;
+      svcs = s;
     } catch (e) { showFatal(e, el); return; }
 
     const active = pkgs.filter(p => p.status !== "archived");
@@ -18,25 +19,20 @@ const ProviderPackages = {
     const multi = active.filter(p => p.package_type === "multitasking");
 
     el.innerHTML = `
-      <section style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:end;padding:8px 2px 18px;border-bottom:1px solid var(--cn-line);margin-bottom:16px">
-        <div>
-          <span class="pv-studio-label">${icon("box")} PACKAGE STUDIO</span>
-          <h1 style="font-size:2.45rem;line-height:1;letter-spacing:-.05em;margin:10px 0 8px">Package studio</h1>
-          <p style="max-width:620px;margin:0;color:var(--cn-muted);line-height:1.55">Create and manage service bundles and team packages.</p>
-        </div>
-        <button class="btn primary" id="create-pkg" style="min-height:42px;padding-inline:16px">${icon("plus")} New package</button>
+      <section class="pv-page-banner">
+        <div><span class="pv-eyebrow">${icon("box")} Package studio</span><h1>Package studio</h1><p>Create polished service bundles and crew offers customers can understand at a glance.</p></div>
+        <button class="btn primary" id="create-pkg">${icon("plus")} New package</button>
       </section>
 
-      <div class="pv-metric-strip" style="margin-top:0">
-        <div><span>Published</span><strong>${active.length}</strong><small>live offers</small></div>
-        <div><span>Multitasking</span><strong>${multi.length}</strong><small>bundles</small></div>
-        <div><span>Teams</span><strong>${teams.length}</strong><small>crew offers</small></div>
-        <div><span>Total</span><strong>${pkgs.length}</strong><small>all packages</small></div>
-      </div>
+      <section class="pv-inbox-strip" aria-label="Package summary">
+        <div><span>Published</span><strong>${active.length}</strong><small>Live offers</small></div>
+        <div><span>Multitasking</span><strong>${multi.length}</strong><small>Service bundles</small></div>
+        <div><span>Teams</span><strong>${teams.length}</strong><small>Crew offers</small></div>
+      </section>
 
       <section class="pv-panel">
-        <div class="pv-panel-head"><div><h2>Your offers</h2><div class="pv-panel-sub">Edit live packages or archive offers you no longer want customers to book.</div></div></div>
-        <div id="pkg-list">${pkgs.length ? `<div class="pv-package-grid">${pkgs.map(p => this.card(p)).join("")}</div>` : `<div class="pv-empty"><strong>No packages yet</strong>Create your first multitasking or team offer.</div>`}</div>
+        <div class="pv-panel-head"><div><h2>Your offers</h2><div class="pv-panel-sub">Edit live packages or archive offers you no longer want customers to book.</div></div><span class="pv-chip">${pkgs.length} total</span></div>
+        <div id="pkg-list">${pkgs.length ? `<div class="pv-package-grid">${pkgs.map(p => this.card(p)).join("")}</div>` : `<div class="pv-empty"><span>${icon("box")}</span><strong>No packages yet</strong><small>Create a multitasking or team offer to make your services easier to book.</small></div>`}</div>
       </section>`;
 
     el.querySelectorAll("[data-archive]").forEach(b => b.addEventListener("click", e => { e.preventDefault(); this._archive(b.dataset.archive, b); }));
@@ -47,7 +43,7 @@ const ProviderPackages = {
   card(p) {
     const members = p.member_count ? `${p.member_count} member crew` : "Solo delivery";
     return `<article class="pv-package-card ${p.package_type}">
-      <div class="between"><span class="pv-chip ${p.package_type === "team" ? "coral" : "mint"}">${p.package_type === "team" ? "Team" : "Multitasking"}</span><span class="xsmall muted">${esc(p.status)}</span></div>
+      <div class="between"><span class="pv-chip ${p.package_type === "team" ? "coral" : "mint"}">${p.package_type === "team" ? "Team" : "Multitasking"}</span><span class="xsmall muted">${p.status === "published" ? "Live" : esc(p.status)}</span></div>
       <h3>${esc(p.name)}</h3>
       <p class="small muted">${esc(p.locality)} · ${p.service_count} services · ${members}</p>
       <div class="pv-task-tags">${p.services.slice(0,4).map(s => `<span class="pv-chip">${esc(s)}</span>`).join("")}</div>
@@ -60,7 +56,8 @@ const ProviderPackages = {
     const me = Auth.get();
     const wrap = document.createElement("div");
     wrap.className = "dialog-backdrop open";
-    wrap.setAttribute("role","dialog"); wrap.setAttribute("aria-modal","true");
+    wrap.setAttribute("role","dialog");
+    wrap.setAttribute("aria-modal","true");
     const initialType = pkg ? pkg.package_type : "multitasking";
     wrap.innerHTML = `<div class="dialog">
       <span class="pv-studio-label">${pkg ? "EDIT OFFER" : "NEW OFFER"}</span>
@@ -108,11 +105,13 @@ const ProviderPackages = {
       e.preventDefault();
       const serviceIds=[...svcWrap.querySelectorAll("[data-svc].active")].map(b=>Number(b.dataset.svc));
       const members=[...memberWrap.querySelectorAll(".pm-check:checked")].map(c=>Number(c.dataset.id));
-      const leadEl=memberWrap.querySelector("input[name=pm-lead]:checked"); const lead=leadEl?Number(leadEl.value):null;
+      const leadEl=memberWrap.querySelector("input[name=pm-lead]:checked");
+      const lead=leadEl?Number(leadEl.value):null;
       if(packageType==="multitasking"&&serviceIds.length<2){Toast.error("Multitasking needs at least 2 services.");return;}
       if(packageType==="team"&&(members.length<2||!lead)){Toast.error(members.length<2?"Team needs at least 2 members.":"Select a team lead.");return;}
       const payload={name:wrap.querySelector("#pm-name").value.trim(),description:wrap.querySelector("#pm-desc").value.trim(),locality:wrap.querySelector("#pm-loc").value.trim(),hourly_rate:parseFloat(wrap.querySelector("#pm-rate").value),package_type:packageType,status:"published",service_ids:serviceIds,member_ids:packageType==="team"?members:[],lead_member_id:packageType==="team"?lead:null};
-      const btn=wrap.querySelector("#pm-submit");btn.disabled=true;
+      const btn=wrap.querySelector("#pm-submit");
+      btn.disabled=true;
       try{ if(pkg) await API.put("/api/providers/me/packages/"+pkg.id,payload); else await API.post("/api/providers/me/packages",payload); Toast.success(pkg?"Package updated":"Package published"); close(); this.render(); }
       catch(err){Toast.error(err.message);btn.disabled=false;}
     });
