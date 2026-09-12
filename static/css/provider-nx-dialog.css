@@ -1,0 +1,10 @@
+.nx-provider-dialog{background:rgba(8,10,16,.72);backdrop-filter:blur(14px)}
+.nx-provider-dialog .dialog{background:#f5f4ee;border:1px solid rgba(255,255,255,.55);border-radius:24px;box-shadow:0 34px 100px rgba(0,0,0,.36);max-width:760px}
+.nx-provider-dialog .dialog h2{font-size:1.6rem;letter-spacing:-.045em;color:#12151d}
+.nx-provider-dialog .input{border-radius:11px;border:1px solid #d9dad4;background:#fff;color:#12151d}
+.nx-provider-dialog .input:focus{border-color:#9e97ff;box-shadow:0 0 0 4px rgba(116,103,255,.12)}
+.nx-provider-dialog .pill-btn{border-radius:999px;border:1px solid #d9dad4;background:#fff;color:#343843}
+.nx-provider-dialog .pill-btn.active{background:#7467ff;border-color:#7467ff;color:#fff;box-shadow:0 8px 18px rgba(116,103,255,.18)}
+.nx-provider-dialog .field label{font-size:.62rem;font-weight:850;color:#4f5560}
+.nx-provider-dialog .dialog-actions{border-top:1px solid #dedfd9;padding-top:14px;margin-top:16px}
+@media(max-width:720px){.nx-provider-dialog{align-items:flex-end;padding:0}.nx-provider-dialog .dialog{width:100%;max-height:92vh;border-radius:22px 22px 0 0}}
