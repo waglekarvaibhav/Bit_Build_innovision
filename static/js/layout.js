@@ -95,8 +95,9 @@ const AppShell = {
 
   page(head) {
     const main = document.getElementById("main");
-    main.innerHTML = `<div class="page-head">${head}</div><div id="content"></div>`;
-    return { el: document.getElementById("content"), head: main.querySelector(".page-head") };
+    const header = (head || "").trim();
+    main.innerHTML = `${header ? `<div class="page-head">${header}</div>` : ""}<div id="content"></div>`;
+    return { el: document.getElementById("content"), head: header ? main.querySelector(".page-head") : null };
   },
 };
 
