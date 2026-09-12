@@ -1,4 +1,4 @@
-// CrewNest NX package studio — productized service offers.
+// Provider packages — polished service package management.
 const ProviderPackages = {
   async render() {
     if (!requireRole("provider")) return;
@@ -19,15 +19,15 @@ const ProviderPackages = {
 
     el.innerHTML = `
       <div class="nx-topline">
-        <div class="nx-title-wrap"><div class="nx-kicker"><i></i> Offer builder</div><h1 class="nx-title">Studio</h1><p class="nx-sub">Turn repeat work into clear, bookable products.</p></div>
+        <div class="nx-title-wrap"><div class="nx-kicker"><i></i> Service packages</div><h1 class="nx-title">Packages</h1><p class="nx-sub">Create and manage bookable bundles and team offers.</p></div>
         <div class="nx-top-actions"><button class="nx-btn primary" id="create-pkg">${icon("plus")} New package</button></div>
       </div>
 
       <section class="nx-statline">
-        <div class="nx-card nx-stat"><small>Published</small><strong>${active.length}</strong><em>live offers</em></div>
-        <div class="nx-card nx-stat"><small>Multitasking</small><strong>${multi.length}</strong><em>bundles</em></div>
-        <div class="nx-card nx-stat"><small>Teams</small><strong>${teams.length}</strong><em>crew offers</em></div>
-        <div class="nx-card nx-stat"><small>Total</small><strong>${pkgs.length}</strong><em>all packages</em></div>
+        <div class="nx-card nx-stat"><div><small>Published</small><strong>${active.length}</strong><em>live offers</em></div></div>
+        <div class="nx-card nx-stat"><div><small>Multitasking</small><strong>${multi.length}</strong><em>bundles</em></div></div>
+        <div class="nx-card nx-stat"><div><small>Team packages</small><strong>${teams.length}</strong><em>crew offers</em></div></div>
+        <div class="nx-card nx-stat"><div><small>Total</small><strong>${pkgs.length}</strong><em>all packages</em></div></div>
       </section>
 
       <section class="nx-studio-grid">${pkgs.length ? pkgs.map(p => this.card(p)).join("") : `<div class="nx-card nx-empty" style="grid-column:1/-1"><div><strong>No packages yet</strong><span>Create your first multitasking or team offer.</span></div></div>`}</section>
@@ -57,9 +57,9 @@ const ProviderPackages = {
     wrap.setAttribute("role","dialog"); wrap.setAttribute("aria-modal","true");
     const initialType = pkg ? pkg.package_type : "multitasking";
     wrap.innerHTML = `<div class="dialog">
-      <div class="nx-kicker"><i></i> ${pkg ? "Edit offer" : "New offer"}</div>
-      <h2>${pkg ? "Refine package" : "Build package"}</h2>
-      <p class="small muted">Define the outcome, location, services, team and whole-package hourly rate.</p>
+      <div class="nx-kicker"><i></i> ${pkg ? "Edit package" : "New package"}</div>
+      <h2>${pkg ? "Update package" : "Create a bookable package"}</h2>
+      <p class="small muted">Define the outcome, location, services, team and package hourly rate.</p>
       <form id="pkg-form" novalidate>
         <div class="field"><label>Package type</label><div class="chips-row" id="type-tabs">
           <button type="button" class="pill-btn ${initialType === "multitasking" ? "active" : ""}" data-type="multitasking">Multitasking</button>
@@ -93,7 +93,7 @@ const ProviderPackages = {
     const memberWrap = wrap.querySelector("#pm-members");
     API.get("/api/providers").then(all => {
       const others = all.filter(p => p.user_id && p.user_id !== me.user_id);
-      memberWrap.innerHTML = others.map(p => `<div class="between" style="border-bottom:1px solid #dedfd9;padding:9px 0"><label style="display:flex;align-items:center;gap:9px"><input type="checkbox" class="pm-check" data-id="${p.user_id}" ${memberSet.has(p.user_id)?"checked":""}/><span>${esc(p.full_name)} <small class="muted">· ${esc(p.profession || "Provider")}</small></span></label><label class="xsmall muted"><input type="radio" name="pm-lead" value="${p.user_id}" ${leadId===p.user_id?"checked":""} ${memberSet.has(p.user_id)?"":"disabled"}/> lead</label></div>`).join("") || `<p class="xsmall muted">No other providers registered yet.</p>`;
+      memberWrap.innerHTML = others.map(p => `<div class="between" style="border-bottom:1px solid #e4e7ec;padding:9px 0"><label style="display:flex;align-items:center;gap:9px"><input type="checkbox" class="pm-check" data-id="${p.user_id}" ${memberSet.has(p.user_id)?"checked":""}/><span>${esc(p.full_name)} <small class="muted">· ${esc(p.profession || "Provider")}</small></span></label><label class="xsmall muted"><input type="radio" name="pm-lead" value="${p.user_id}" ${leadId===p.user_id?"checked":""} ${memberSet.has(p.user_id)?"":"disabled"}/> lead</label></div>`).join("") || `<p class="xsmall muted">No other providers registered yet.</p>`;
       memberWrap.querySelectorAll(".pm-check").forEach(c => c.addEventListener("change",()=>{ const r=memberWrap.querySelector(`input[name="pm-lead"][value="${c.dataset.id}"]`); r.disabled=!c.checked; if(!c.checked&&r.checked){r.checked=false;leadId=null;} }));
     }).catch(()=> memberWrap.innerHTML=`<p class="xsmall muted">Could not load providers.</p>`);
 
