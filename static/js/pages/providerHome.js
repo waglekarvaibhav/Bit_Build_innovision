@@ -1,4 +1,4 @@
-// Provider home dashboard — premium command-center redesign.
+// Provider home — asymmetric work studio, optimized for fast action.
 const ProviderHome = {
   async render() {
     if (!requireRole("provider")) return;
@@ -20,59 +20,68 @@ const ProviderHome = {
     const available = prof.profile.available;
     const todayISO = new Date().toISOString().slice(0, 10);
     const pending = bookings.filter(b => b.status === "pending");
-    const today = bookings.filter(b => b.booking_date === todayISO && ["accepted", "pending", "completion_requested"].includes(b.status));
-    const ongoing = bookings.filter(b => ["accepted", "completion_requested"].includes(b.status));
+    const today = bookings.filter(b => b.booking_date === todayISO && ["accepted","pending","completion_requested"].includes(b.status));
+    const ongoing = bookings.filter(b => ["accepted","completion_requested"].includes(b.status));
     const completed = bookings.filter(b => b.status === "completed");
     const jobsValue = completed.reduce((s, b) => s + (b.quoted_price || 0), 0);
     const first = (me.full_name || "Provider").split(" ")[0];
+    const nextJob = [...today, ...ongoing].sort((a,b) => String(a.booking_date+a.booking_time).localeCompare(String(b.booking_date+b.booking_time)))[0] || null;
 
     el.innerHTML = `
-      <section class="pv-hero">
-        <div class="pv-hero-row">
-          <div>
-            <span class="pv-eyebrow">${icon("sparkles")} Provider workspace</span>
-            <h1>Good work,<br>${esc(first)}.</h1>
-            <p>Your requests, live jobs and service business are all in one place. Handle the next important task without hunting through screens.</p>
+      <section class="pv-studio-intro">
+        <div class="pv-intro-copy">
+          <span class="pv-studio-label">${icon("sparkles")} PROVIDER STUDIO</span>
+          <h1>${esc(first)}, here’s<br>what matters <em>now.</em></h1>
+          <p>Requests, today’s work and your service business — distilled into one fast workspace.</p>
+          <div class="pv-quick-links">
+            <a href="/provider-requests">${icon("inbox")} Requests <b>${pending.length}</b></a>
+            <a href="/provider-jobs">${icon("clock")} Live jobs <b>${ongoing.length}</b></a>
+            <a href="/provider-packages">${icon("box")} Packages</a>
           </div>
-          <div class="pv-availability">
-            <strong><span class="pv-dot ${available ? "" : "off"}"></span>${available ? "Open for new work" : "Not taking new work"}</strong>
-            <p class="xsmall" style="color:rgba(255,255,255,.62);margin:7px 0 0">Customers ${available ? "can" : "cannot"} currently book you.</p>
-            <button class="btn ${available ? "ghost" : "primary"} sm" id="toggle-avail">${available ? "Pause bookings" : "Go available"}</button>
+        </div>
+
+        <aside class="pv-now-card">
+          <div class="pv-now-top">
+            <span class="pv-now-status"><i class="${available ? "on" : ""}"></i>${available ? "Bookable" : "Paused"}</span>
+            <button id="toggle-avail">${available ? "Pause" : "Go live"}</button>
           </div>
+          ${nextJob ? `
+            <div class="pv-next-label">NEXT UP</div>
+            <h3>${esc(nextJob.item_description)}</h3>
+            <p>${fmtDate(nextJob.booking_date)} · ${esc(nextJob.booking_time)}</p>
+            <div class="pv-next-meta"><span>${esc(nextJob.customer_name)}</span><strong>${money(nextJob.quoted_price)}</strong></div>
+            <a class="pv-now-open" href="/provider-booking/${nextJob.id}">Open job ${icon("clock")}</a>
+          ` : `
+            <div class="pv-next-label">YOU’RE CLEAR</div>
+            <h3>No active work right now.</h3>
+            <p>New accepted work will appear here first.</p>
+            <a class="pv-now-open" href="/provider-requests">Check requests ${icon("inbox")}</a>
+          `}
+        </aside>
+      </section>
+
+      <section class="pv-metric-strip" aria-label="Provider summary">
+        <div><span>Requests</span><strong>${pending.length}</strong><small>waiting</small></div>
+        <div><span>Today</span><strong>${today.length}</strong><small>scheduled</small></div>
+        <div><span>Active</span><strong>${ongoing.length}</strong><small>in progress</small></div>
+        <div><span>Completed value</span><strong>${money(jobsValue)}</strong><small>historical quote total</small></div>
+      </section>
+
+      <section class="pv-workboard">
+        <div class="pv-work-column pv-work-urgent">
+          <div class="pv-work-head"><div><span>01</span><h2>Act now</h2></div><a href="/provider-requests">All requests</a></div>
+          <div class="pv-stack">${this._pendingCards(pending.slice(0, 4))}</div>
+        </div>
+        <div class="pv-work-column">
+          <div class="pv-work-head"><div><span>02</span><h2>In motion</h2></div><a href="/provider-jobs">All jobs</a></div>
+          <div class="pv-stack">${this._jobCards(ongoing.slice(0, 4))}</div>
         </div>
       </section>
 
-      <section class="pv-kpis" aria-label="Provider overview">
-        ${this._kpi(icon("inbox"), pending.length, "New requests")}
-        ${this._kpi(icon("calendar"), today.length, "Scheduled today")}
-        ${this._kpi(icon("clock"), ongoing.length, "Jobs in progress")}
-        ${this._kpi(icon("check"), money(jobsValue), "Completed job value")}
-      </section>
-
-      <div class="pv-grid-2">
-        <section class="pv-panel">
-          <div class="pv-panel-head">
-            <div><h2>Needs your attention</h2><div class="pv-panel-sub">Newest booking requests waiting for a response.</div></div>
-            <a class="pv-link" href="/provider-requests">View all requests</a>
-          </div>
-          <div class="pv-task-list" id="pending-box">${this._pendingCards(pending.slice(0, 3))}</div>
-        </section>
-
-        <section class="pv-panel">
-          <div class="pv-panel-head">
-            <div><h2>Live jobs</h2><div class="pv-panel-sub">Accepted work and completion follow-ups.</div></div>
-            <a class="pv-link" href="/provider-jobs">Open jobs</a>
-          </div>
-          <div class="pv-task-list" id="ongoing-box">${this._jobCards(ongoing.slice(0, 3))}</div>
-        </section>
-      </div>
-
-      <section class="pv-panel" style="margin-top:18px">
-        <div class="pv-panel-head">
-          <div><h2>Your packages</h2><div class="pv-panel-sub">Turn repeat work into bookable service bundles and teams.</div></div>
-          <a class="btn sm primary" href="/provider-packages">${icon("plus")} Manage packages</a>
-        </div>
-        <div id="pkg-box"><div class="pv-empty">Loading packages…</div></div>
+      <section class="pv-package-band">
+        <div class="pv-package-band-copy"><span>03</span><h2>Your service products</h2><p>Packages turn repeatable work into a clearer, more professional offer.</p></div>
+        <div id="pkg-box" class="pv-package-band-list"><div class="pv-empty">Loading packages…</div></div>
+        <a class="pv-package-cta" href="/provider-packages">Manage packages ${icon("plus")}</a>
       </section>
     `;
 
@@ -87,40 +96,36 @@ const ProviderHome = {
     });
   },
 
-  _kpi(iconHtml, value, label) {
-    return `<div class="pv-kpi"><span class="pv-kpi-icon">${iconHtml}</span><strong>${value}</strong><span>${label}</span></div>`;
-  },
-
   _pendingCards(rows) {
-    if (!rows.length) return `<div class="pv-empty"><strong>Inbox clear</strong>No new booking requests right now.</div>`;
-    return rows.map(b => `
-      <a class="pv-task" href="/provider-booking/${b.id}">
-        <div><div class="pv-task-title">${esc(b.item_description)}</div><div class="pv-task-meta">${esc(b.customer_name)} · ${fmtDate(b.booking_date)} · ${esc(b.booking_time)}</div>
-          <div class="pv-task-tags"><span class="pv-chip coral">${money(b.quoted_price)}</span>${b.package_type_snapshot ? `<span class="pv-chip">${esc(b.package_type_snapshot)}</span>` : ""}</div>
-        </div><div class="pv-task-action"><span class="btn sm primary">Review</span></div>
+    if (!rows.length) return `<div class="pv-zero"><span>✓</span><strong>Inbox clear</strong><small>No new requests need your attention.</small></div>`;
+    return rows.map((b, i) => `
+      <a class="pv-work-card" href="/provider-booking/${b.id}">
+        <span class="pv-work-index">0${i + 1}</span>
+        <div class="pv-work-body"><strong>${esc(b.item_description)}</strong><small>${esc(b.customer_name)} · ${fmtDate(b.booking_date)} at ${esc(b.booking_time)}</small></div>
+        <div class="pv-work-price">${money(b.quoted_price)}<span>Review →</span></div>
       </a>`).join("");
   },
 
   _jobCards(rows) {
-    if (!rows.length) return `<div class="pv-empty"><strong>Nothing active</strong>Your accepted jobs will appear here.</div>`;
-    return rows.map(b => `
-      <a class="pv-task" href="/provider-booking/${b.id}">
-        <div><div class="pv-task-title">${esc(b.item_description)}</div><div class="pv-task-meta">${esc(b.customer_name)} · ${fmtDate(b.booking_date)} at ${esc(b.booking_time)}</div>
-          <div class="pv-task-tags">${statusBadge(b.status)}<span class="pv-chip">${money(b.quoted_price)}</span></div>
-        </div><div class="pv-task-action"><span class="btn sm ghost">Open job</span></div>
+    if (!rows.length) return `<div class="pv-zero"><span>•</span><strong>Nothing live</strong><small>Accepted jobs will appear here.</small></div>`;
+    return rows.map((b, i) => `
+      <a class="pv-work-card" href="/provider-booking/${b.id}">
+        <span class="pv-work-index">0${i + 1}</span>
+        <div class="pv-work-body"><strong>${esc(b.item_description)}</strong><small>${esc(b.customer_name)} · ${fmtDate(b.booking_date)} at ${esc(b.booking_time)}</small></div>
+        <div class="pv-work-price">${money(b.quoted_price)}<span>${STATUS_LABEL[b.status] || b.status} →</span></div>
       </a>`).join("");
   },
 
   async _pkgCards() {
     let pkgs;
     try { pkgs = (await API.get("/api/providers/me/packages")).packages; }
-    catch (e) { return `<div class="pv-empty">${esc(e.message)}</div>`; }
-    if (!pkgs.length) return `<div class="pv-empty"><strong>No packages yet</strong>Create a bundle or team package to make larger jobs easier to book.<br><a class="btn sm primary mt-1" href="/provider-packages">Create package</a></div>`;
-    return `<div class="pv-package-grid">${pkgs.slice(0, 4).map(p => `
-      <article class="pv-package-card ${p.package_type}">
-        <div class="between"><span class="pv-chip ${p.package_type === "team" ? "coral" : "mint"}">${p.package_type === "team" ? "Team" : "Multitasking"}</span><span class="xsmall muted">${esc(p.status)}</span></div>
-        <h3>${esc(p.name)}</h3><p class="xsmall muted">${p.service_count} services · ${p.member_count ? p.member_count + " members" : "solo delivery"}</p>
-        <div class="pv-package-rate">${money(p.hourly_rate)}<small>/hr</small></div>
-      </article>`).join("")}</div>`;
+    catch (e) { return `<div class="pv-zero"><strong>${esc(e.message)}</strong></div>`; }
+    if (!pkgs.length) return `<div class="pv-zero"><strong>No packages yet</strong><small>Create your first package to showcase bundled work.</small></div>`;
+    return pkgs.slice(0, 3).map(p => `
+      <a class="pv-mini-package" href="/provider-packages">
+        <span>${p.package_type === "team" ? "TEAM" : "MULTI"}</span>
+        <strong>${esc(p.name)}</strong>
+        <small>${p.service_count} services · ${money(p.hourly_rate)}/hr</small>
+      </a>`).join("");
   },
 };
