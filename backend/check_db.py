@@ -6,6 +6,9 @@ from .database import engine
 
 if __name__ == "__main__":
     with engine.connect() as connection:
-        database_name = connection.execute(text("SELECT current_database()"))
-        name = database_name.scalar_one()
-        print(f"Database connection successful: {name}")
+        connection.execute(text("SELECT 1"))
+        if engine.dialect.name == "postgresql":
+            name = connection.execute(text("SELECT current_database()" )).scalar_one()
+            print(f"PostgreSQL connection successful: {name}")
+        else:
+            print(f"Database connection successful: {engine.dialect.name}")
