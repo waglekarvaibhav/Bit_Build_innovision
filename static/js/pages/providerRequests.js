@@ -1,4 +1,4 @@
-// CrewNest NX provider inbox — split-view request handling.
+// CrewNest Atlas provider requests — compact decision queue.
 const ProviderRequests = {
   async render() {
     if (!requireRole("provider")) return;
@@ -17,57 +17,42 @@ const ProviderRequests = {
     const completed = history.filter(b => b.status === "completed").length;
 
     el.innerHTML = `
-      <div class="nx-topline">
-        <div class="nx-title-wrap">
-          <div class="nx-kicker"><i></i> Incoming work</div>
-          <h1 class="nx-title">Inbox</h1>
-          <p class="nx-sub">Review, accept or decline new customer requests.</p>
-        </div>
-        <div class="nx-top-actions"><span class="nx-pill">${pending.length} waiting</span><span class="nx-pill">${accepted} accepted</span><span class="nx-pill">${completed} done</span></div>
-      </div>
+      <header class="atlas-pagehead">
+        <div><div class="atlas-kicker">Decision queue</div><h1>Requests</h1><p>One place to review incoming work before it joins your schedule.</p></div>
+        <div class="atlas-actions"><span class="atlas-status ${pending.length ? "live" : ""}">${pending.length} waiting</span><span class="atlas-tag mint">${accepted} accepted</span><span class="atlas-tag">${completed} completed</span></div>
+      </header>
 
-      <section class="nx-inbox-grid">
-        <article class="nx-card nx-inbox-lane">
-          <div class="nx-lane-head"><h2>Needs a decision</h2><span class="nx-count">${pending.length}</span></div>
-          <div id="pending-list">${pending.length ? pending.map(b => this._pendingCard(b)).join("") : `<div class="nx-empty"><div><strong>Inbox zero</strong><span>New customer requests will appear here.</span></div></div>`}</div>
+      <section class="atlas-request-layout">
+        <article class="atlas-card atlas-queue">
+          <div class="atlas-card-head"><div><h2>Needs a decision</h2><p>${pending.length ? `${pending.length} customer request${pending.length===1?"":"s"} waiting.` : "You’re all caught up."}</p></div><span class="atlas-count">${pending.length}</span></div>
+          <div id="pending-list">${pending.length ? pending.map(b => this._pending(b)).join("") : `<div class="atlas-empty"><div><strong>Queue empty</strong><span>New requests will land here.</span></div></div>`}</div>
         </article>
 
-        <article class="nx-card nx-inbox-lane">
-          <div class="nx-lane-head"><h2>History</h2><span class="nx-count">${history.length}</span></div>
-          <div class="nx-history-list">${history.length ? history.map(b => this._historyRow(b)).join("") : `<div class="nx-empty"><div><strong>No history yet</strong><span>Your handled requests will build up here.</span></div></div>`}</div>
+        <article class="atlas-card atlas-history">
+          <div class="atlas-card-head"><div><h2>Decision history</h2><p>Accepted, completed, rejected and cancelled bookings.</p></div><span class="atlas-count">${history.length}</span></div>
+          <div class="atlas-history-list">${history.length ? history.map(b => this._history(b)).join("") : `<div class="atlas-empty"><div><strong>No history yet</strong><span>Your handled requests will build up here.</span></div></div>`}</div>
         </article>
       </section>
     `;
 
-    el.querySelectorAll("[data-accept]").forEach(b => b.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); this._act(b, "accept"); }));
-    el.querySelectorAll("[data-reject]").forEach(b => b.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); this._act(b, "reject"); }));
+    el.querySelectorAll("[data-accept]").forEach(btn => btn.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); this._act(btn,"accept"); }));
+    el.querySelectorAll("[data-reject]").forEach(btn => btn.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); this._act(btn,"reject"); }));
   },
 
-  _pendingCard(b) {
+  _pending(b){
     const type = b.package_type_snapshot ? `${b.package_type_snapshot}${b.package_name_snapshot ? " · "+b.package_name_snapshot : ""}` : "Individual";
-    return `<article class="nx-request">
-      <a href="/provider-booking/${b.id}" style="text-decoration:none;color:inherit">
-        <div class="nx-request-top">
-          <span class="nx-avatar">${initials(b.customer_name)}</span>
-          <div><h3>${esc(b.item_description)}</h3><div class="nx-meta">${esc(b.customer_name)} · ${fmtDate(b.booking_date)} · ${esc(b.booking_time)}</div><div class="nx-tags"><span class="nx-tag violet">Pending</span><span class="nx-tag">${esc(type)}</span></div></div>
-        </div>
-      </a>
-      <div class="nx-request-actions"><span class="nx-price">${money(b.quoted_price)}</span><button class="nx-btn lime" data-accept="${b.id}">Accept</button><button class="nx-btn danger" data-reject="${b.id}">Decline</button></div>
-    </article>`;
+    return `<article class="atlas-request-card"><a href="/provider-booking/${b.id}" style="text-decoration:none;color:inherit"><div class="atlas-request-top"><span class="atlas-avatar">${initials(b.customer_name)}</span><div><h3>${esc(b.item_description)}</h3><div class="atlas-meta">${esc(b.customer_name)} · ${fmtDate(b.booking_date)} · ${esc(b.booking_time)}</div><div class="atlas-tags"><span class="atlas-tag amber">Pending</span><span class="atlas-tag">${esc(type)}</span></div></div></div></a><div class="atlas-request-actions"><b>${money(b.quoted_price)}</b><button class="atlas-btn primary" data-accept="${b.id}">Accept</button><button class="atlas-btn danger" data-reject="${b.id}">Decline</button></div></article>`;
   },
 
-  _historyRow(b) {
-    return `<a class="nx-history-item" href="/provider-booking/${b.id}"><div><strong>${esc(b.item_description)}</strong><small>${esc(b.customer_name)} · ${fmtDate(b.booking_date)} · ${STATUS_LABEL[b.status] || esc(b.status)}</small></div><b>${money(b.quoted_price)}</b></a>`;
+  _history(b){
+    return `<a class="atlas-history-row" href="/provider-booking/${b.id}"><div><strong>${esc(b.item_description)}</strong><span>${esc(b.customer_name)} · ${fmtDate(b.booking_date)} · ${STATUS_LABEL[b.status] || esc(b.status)}</span></div><b>${money(b.quoted_price)}</b></a>`;
   },
 
-  async _act(btn, act) {
-    if (act === "reject" && !confirm("Reject this booking request?")) return;
+  async _act(btn, act){
+    if(act === "reject" && !confirm("Reject this booking request?")) return;
     btn.disabled = true;
-    const bid = btn.getAttribute("data-" + act);
-    try {
-      await API.put("/api/bookings/" + bid + "/" + act, {});
-      Toast.success(act === "accept" ? "Request accepted" : "Request declined");
-      this.render();
-    } catch (e) { Toast.error(e.message); btn.disabled = false; }
-  },
+    const id = btn.getAttribute("data-"+act);
+    try{ await API.put(`/api/bookings/${id}/${act}`,{}); Toast.success(act === "accept" ? "Request accepted" : "Request declined"); this.render(); }
+    catch(e){ Toast.error(e.message); btn.disabled = false; }
+  }
 };
