@@ -75,6 +75,21 @@ def main():
     with sync_playwright() as p:
         b = p.chromium.launch(headless=True, executable_path=CHROME)
 
+        # ---- S0) Bare-root startup: fresh visitor reaches an initial screen ----
+        sc = b.new_context(viewport={"width":1280,"height":900})
+        sp = sc.new_page()
+        so_cons = []
+        sp.on("console", lambda m: so_cons.append(m.text) if m.type == "error" else None)
+        sp.goto(BASE + "/", wait_until="load", timeout=15000)
+        sp.wait_for_url("**/login", timeout=8000)
+        logged = sp.url.strip().endswith("/login")
+        form_ok = sp.locator("#login-form").count() == 1
+        spin_gone = sp.locator(".spinner").count() == 0
+        log("S0 bare root -> login, no spinner", logged and form_ok and spin_gone, sp.url)
+        log("S0 bare root no console errors", len(so_cons) == 0, str(so_cons))
+        shot(sp, "S0-startup-login")
+        sc.close()
+
         # ---- A) Individual booking full UI lifecycle ----
         date = future_date(200)
         r = make_individual_booking(date)

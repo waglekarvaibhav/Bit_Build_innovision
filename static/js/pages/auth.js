@@ -3,25 +3,39 @@ const AuthPage = {
   login() {
     if (Auth.isAuthenticated()) { location.href = roleHome(Auth.role()); return; }
     document.getElementById("app").innerHTML = `
-      <div class="auth-wrap">
-        <div class="auth-card card">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:var(--space-4)">
-            <span class="logo" style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#0f766e,#d97706);display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.2rem">CN</span>
-            <span><strong style="font-size:1.35rem">CrewNest</strong><br><span class="small muted">local services marketplace</span></span>
+      <div class="auth-wrap mi-login">
+        <div class="mi-login-brand">
+          <div class="mi-brand-lock">
+            <div class="mi-brand-mark">
+              <span class="mi-brand-logo" aria-hidden="true">CN</span>
+              <span class="mi-brand-word">CrewNest<small>local services marketplace</small></span>
+            </div>
+            <h1 class="mi-brand-headline">Good help.<br>Close to home.</h1>
+            <p class="mi-brand-sub">Book a trusted local professional for cleaning, repairs, packing, wiring and more — from one handy service.</p>
           </div>
-          <h2>Welcome back</h2>
-          <p class="small muted">Sign in to manage bookings, jobs, and packages.</p>
-          <form id="login-form" novalidate>
-            <div class="field"><label for="l-email">Email</label>
-              <input class="input" type="email" id="l-email" autocomplete="email" required placeholder="you@example.com" /></div>
-            <div class="field"><label for="l-pass">Password</label>
-              <input class="input" type="password" id="l-pass" autocomplete="current-password" required /></div>
-            <button class="btn primary block lg" type="submit">Sign in</button>
-          </form>
-          <p class="small mt-2" style="text-align:center">New here? <a href="/register">Create an account</a></p>
-          <div class="mt-2 xsmall muted" style="background:var(--bg-muted);border-radius:var(--radius);padding:var(--space-3)">
-            <strong>Demo accounts</strong> (password <span class="mono">DemoPass123!</span>)<br />
-            Customer: <span class="mono">aarav@crewneat.demo</span> · Provider: <span class="mono">priya@crewneat.demo</span>
+          <div class="mi-brand-illus" aria-hidden="true">
+            ${icon("homeInt")}
+          </div>
+          <div class="mi-brand-foot">CrewNest · serving Goa's homes &amp; teams</div>
+        </div>
+
+        <div class="mi-login-form">
+          <div class="mi-login-card">
+            <h2>Welcome back</h2>
+            <p class="mi-lede">Sign in to manage bookings, jobs, and packages.</p>
+            <form id="login-form" novalidate>
+              <div class="field"><label for="l-email">Email</label>
+                <input class="input" type="email" id="l-email" autocomplete="email" required placeholder="you@example.com" /></div>
+              <div class="field"><label for="l-pass">Password</label>
+                <input class="input" type="password" id="l-pass" autocomplete="current-password" required /></div>
+              <button class="mi-login-submit" type="submit">Sign in</button>
+            </form>
+            <p class="mi-login-switch">New here? <a href="/register">Create an account</a></p>
+            <div class="mi-login-demo">
+              <strong>Demo accounts</strong>
+              Password: <span class="mono">DemoPass123!</span><br />
+              Customer: <span class="mono">aarav@crewneat.demo</span> · Provider: <span class="mono">priya@crewneat.demo</span>
+            </div>
           </div>
         </div>
       </div>`;

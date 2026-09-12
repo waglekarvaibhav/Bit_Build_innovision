@@ -54,10 +54,17 @@ async function dispatchRoute() {
   renderNotFound(path);
 }
 
-function renderNotFound() {
-  const main = document.getElementById("main");
+function renderNotFound(path) {
+  // Guard: if the app shell has not been mounted yet (#main missing), replace
+  // the "Loading…" placeholder so the user is never stuck on a permanent
+  // spinner. Fall back to the shell-less 404 layout when the shell is absent.
+  const main = document.getElementById("main") || document.getElementById("app");
   if (main) {
-    main.innerHTML = `<div class="state-box mt-2"><div class="big">404</div><p>That page doesn't exist.</p><a class="btn sm mt-1" href="/home">Go home</a></div>`;
+    if (main.id === "app") {
+      main.innerHTML = `<div class="state-box" style="max-width:420px;margin:20vh auto"><div class="big">404</div><p>That page doesn't exist.</p><a class="btn sm mt-1" href="/home">Go home</a></div>`;
+    } else {
+      main.innerHTML = `<div class="state-box mt-2"><div class="big">404</div><p>That page doesn't exist.</p><a class="btn sm mt-1" href="/home">Go home</a></div>`;
+    }
   }
 }
 

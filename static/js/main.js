@@ -1,6 +1,18 @@
 // CrewNest application entry. Registers routes and starts the router.
 // All page modules are global constants loaded via script tags.
 
+// Root: route unauthenticated visitors to the login screen and authenticated
+// users to their role home. Without a route for "/", dispatchRoute() falls
+// through to renderNotFound(), which silently no-ops before the shell exists
+// and leaves the "Loading…" spinner in place forever.
+route("/", () => {
+  if (Auth.isAuthenticated()) {
+    location.href = roleHome(Auth.role());
+  } else {
+    location.replace("/login");
+  }
+});
+
 // Authentication
 route("/login", () => AuthPage.login());
 route("/register", () => AuthPage.register());

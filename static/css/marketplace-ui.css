@@ -1,0 +1,306 @@
+/* ============================================================
+   CrewNest — marketplace UI
+   Scoped, dedicated redesign for the login and customer-home
+   screens. Deliberately leaves shared .card/.grid/.btn/.input
+   rules and provider/registration screens untouched by declaring
+   more specific, prefixed selectors and new class hooks.
+
+   Palette:
+     --mi-warm   #F7F8F5  warm white background
+     --mi-white  #FFFFFF
+     --mi-teal   #0F766E  primary actions
+     --mi-forest #143C35  dark accents
+     --mi-char   #172B26  charcoal text
+     --mi-amber  #EEA03C  restrained highlights
+   ============================================================ */
+
+/* ---- Scoped design tokens (only inside marketplace surfaces) ---- */
+.auth-wrap, .mi-root {
+  --mi-bg: #F7F8F5;
+  --mi-surface: #FFFFFF;
+  --mi-teal: #0F766E;
+  --mi-forest: #143C35;
+  --mi-char: #172B26;
+  --mi-ink-2: #3f4d48;
+  --mi-ink-3: #66736e;
+  --mi-border: #E4EBE6;
+  --mi-border-strong: #C7D3CB;
+  --mi-amber: #EEA03C;
+  --mi-amber-soft: #FBF0DF;
+  --mi-teal-soft: #E7F5F1;
+  --mi-radius: 16px;
+  --mi-radius-sm: 12px;
+  --mi-shadow: 0 1px 2px rgba(23,43,38,.05), 0 10px 32px rgba(23,43,38,.06);
+  --mi-shadow-lg: 0 24px 60px rgba(23,43,38,.14);
+  --mi-gutter: 28px;
+}
+
+/* Prevent horizontal scroll from any marketplace surface */
+.auth-wrap, .mi-root { max-width: 100%; overflow-x: hidden; }
+
+/* ============================================================
+   LOGIN  — two-column branded layout
+   ============================================================ */
+.auth-wrap.mi-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  background: var(--mi-bg);
+  color: var(--mi-char);
+}
+
+/* Branding panel (left, desktop) */
+.mi-login-brand {
+  flex: 1 1 46%;
+  background: linear-gradient(160deg, var(--mi-forest), var(--mi-teal) 180%);
+  color: #fff;
+  padding: clamp(28px, 5vw, 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+}
+.mi-brand-lock { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; }
+.mi-brand-mark { display: flex; align-items: center; gap: 14px; }
+.mi-brand-logo {
+  width: 46px; height: 46px; border-radius: 14px; flex: none;
+  background: #fff; color: var(--mi-teal); display: grid; place-items: center;
+  font-weight: 800; font-size: 1.2rem; letter-spacing: .02em;
+  box-shadow: 0 8px 20px rgba(0,0,0,.18);
+}
+.mi-brand-word { font-size: 1.5rem; font-weight: 750; letter-spacing: .01em; }
+.mi-brand-word small { display: block; font-size: .8rem; font-weight: 500; opacity: .8; margin-top: 2px; }
+.mi-brand-headline { font-size: clamp(1.9rem, 3.2vw, 2.8rem); line-height: 1.08; font-weight: 780; max-width: 15ch; }
+.mi-brand-sub { margin-top: 16px; font-size: 1.05rem; line-height: 1.55; opacity: .9; max-width: 44ch; }
+
+.mi-brand-illus { margin-top: 24px; }
+.mi-brand-illus svg { width: 100%; max-width: 340px; height: auto; display: block; }
+.mi-brand-foot { font-size: .85rem; opacity: .75; letter-spacing: .02em; }
+
+/* Form side */
+.mi-login-form { flex: 1 1 54%; display: flex; align-items: center; justify-content: center; padding: clamp(24px, 5vw, 72px); }
+.mi-login-card {
+  width: 100%; max-width: 460px;
+  background: var(--mi-surface); border: 1px solid var(--mi-border);
+  border-radius: var(--mi-radius); box-shadow: var(--mi-shadow);
+  padding: clamp(24px, 4vw, 40px);
+}
+.mi-login-card h2 { margin: 6px 0 4px; font-size: 1.7rem; font-weight: 760; color: var(--mi-char); }
+.mi-login-card .mi-lede { color: var(--mi-ink-2); margin: 0 0 22px; font-size: .98rem; }
+.mi-login-card .field label { color: var(--mi-char); font-weight: 600; font-size: .9rem; }
+.mi-login-card .input {
+  background: var(--mi-warm); border: 1px solid var(--mi-border-strong);
+  border-radius: var(--mi-radius-sm); padding: 12px 14px; font-size: 1rem;
+}
+.mi-login-card .input:focus { border-color: var(--mi-teal); outline: 3px solid var(--mi-teal-soft); }
+.mi-login-submit {
+  width: 100%; padding: 14px 18px; font-size: 1rem; border-radius: var(--mi-radius-sm);
+  background: var(--mi-teal); color: #fff; font-weight: 700; border: 0; cursor: pointer;
+  transition: background .14s ease, transform .06s ease; margin-top: 4px;
+}
+.mi-login-submit:hover { background: var(--mi-teal); filter: brightness(.95); }
+.mi-login-submit:active { transform: translateY(1px); }
+.mi-login-submit:disabled { opacity: .6; cursor: not-allowed; }
+
+.mi-login-switch { text-align: center; margin-top: 18px; font-size: .92rem; color: var(--mi-ink-2); }
+.mi-login-switch a { color: var(--mi-teal); font-weight: 650; }
+
+.mi-login-demo {
+  margin-top: 22px; padding: 14px 16px; background: var(--mi-warm);
+  border: 1px solid var(--mi-border); border-radius: var(--mi-radius-sm); font-size: .84rem; color: var(--mi-ink-2);
+}
+.mi-login-demo strong { color: var(--mi-char); display: block; margin-bottom: 4px; font-size: .88rem; }
+.mi-login-demo .mono { font-family: var(--font-mono); background: #fff; border: 1px solid var(--mi-border); padding: 1px 6px; border-radius: 6px; font-size: .82em; color: var(--mi-char); }
+
+/* Mobile login: compact branded intro above a single-column form */
+@media (max-width: 900px) {
+  .mi-login { flex-direction: column; }
+  .mi-login-brand { flex: none; align-items: stretch; padding: 18px 20px 16px; justify-content: flex-start; gap: 8px; }
+  .mi-brand-illus { display: none; }
+  .mi-brand-foot { display: none; }
+  .mi-brand-headline { font-size: 1.5rem; margin: 0; }
+  .mi-brand-sub { font-size: .92rem; margin: 6px 0 0; }
+  .mi-brand-mark .mi-brand-word { font-size: 1.15rem; }
+  .mi-brand-logo { width: 38px; height: 38px; }
+  .mi-login-form { padding: 0 20px 24px; align-items: flex-start; }
+  .mi-login-card { padding: 22px 20px; }
+}
+
+/* ============================================================
+   CUSTOMER HOME  — wider content, welcome, search, tiles
+   ============================================================ */
+.mi-root { min-height: 100%; }
+
+/* Wider usable content area — CUSTOMER role only (24–40px padding, ~1320px max).
+   Scoped so provider screens keep their original .main sizing. */
+@media (min-width: 901px) {
+  .app.mi-role-customer .main { max-width: 1320px; padding: var(--space-6) var(--space-8); }
+}
+@media (max-width: 900px) {
+  .app.mi-role-customer .main { max-width: 100%; }
+}
+
+.mi-page-pad { padding: 4px clamp(8px, 2vw, 16px); }
+
+/* Welcome banner */
+.mi-hero {
+  background:
+    radial-gradient(1200px 400px at 85% -10%, var(--mi-teal-soft), transparent 60%),
+    linear-gradient(180deg, #F1F6F1, var(--mi-bg));
+  border: 1px solid var(--mi-border);
+  border-radius: var(--mi-radius);
+  padding: clamp(20px, 3.5vw, 34px) clamp(20px, 3vw, 40px);
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+}
+.mi-hero h1 { margin: 0 0 6px; font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 780; color: var(--mi-char); line-height: 1.08; }
+.mi-hero p { margin: 0; color: var(--mi-ink-2); font-size: 1rem; max-width: 46ch; }
+.mi-hero-mark { flex: none; color: var(--mi-teal); border: 1px solid var(--mi-border); background: #fff; border-radius: 18px; padding: 12px; box-shadow: var(--mi-shadow); }
+.mi-hero-mark svg { width: 56px; height: 56px; }
+
+/* Search control */
+.mi-search { position: relative; margin: 20px 0 10px; max-width: 720px; }
+.mi-search .input {
+  width: 100%; padding: 16px 54px 16px 20px; font-size: 1.05rem;
+  border-radius: 999px; border: 1px solid var(--mi-border-strong);
+  background: var(--mi-surface); box-shadow: var(--mi-shadow);
+}
+.mi-search .input:focus { border-color: var(--mi-teal); outline: 3px solid var(--mi-teal-soft); }
+.mi-search-icon {
+  position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+  display: inline-flex; color: var(--mi-teal); pointer-events: none;
+}
+.mi-search .input:focus ~ .mi-search-icon, .mi-search:hover .mi-search-icon { color: var(--mi-teal); }
+
+/* Locality chips */
+.mi-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 24px; }
+.mi-chip {
+  border: 1px solid var(--mi-border-strong); background: var(--mi-surface);
+  color: var(--mi-ink-2); padding: 9px 15px; border-radius: 999px; font-size: .9rem;
+  cursor: pointer; font-weight: 600; transition: border-color .12s ease, color .12s ease, background .12s ease;
+}
+.mi-chip:hover { border-color: var(--mi-teal); color: var(--mi-teal); }
+.mi-chip .ico { margin-right: 5px; vertical-align: -2px; }
+
+/* Section headers */
+.mi-section { margin: calc(var(--space-8) + 6px) 0 var(--space-4); display: flex; align-items: baseline; gap: 12px; }
+.mi-section h2 { margin: 0; font-size: 1.32rem; font-weight: 740; color: var(--mi-char); }
+.mi-section .mi-section-note { color: var(--mi-ink-3); font-size: .9rem; }
+
+/* Category tiles */
+.mi-cats { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.mi-cat {
+  border: 1px solid var(--mi-border); background: var(--mi-surface);
+  border-radius: var(--mi-radius-sm); padding: 18px 16px 16px; text-align: left; cursor: pointer;
+  display: flex; flex-direction: column; gap: 10px; min-height: 118px; color: var(--mi-char);
+  transition: transform .12s ease, box-shadow .14s ease, border-color .14s ease;
+  font-family: inherit;
+}
+.mi-cat:hover { transform: translateY(-3px); border-color: var(--mi-teal); box-shadow: var(--mi-shadow); }
+.mi-cat:focus-visible { outline: 3px solid var(--mi-teal-soft); outline-offset: 2px; }
+.mi-cat .mi-cat-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: var(--mi-teal); background: var(--mi-teal-soft); font-size: 1.2rem; }
+.mi-cat .mi-cat-name { font-weight: 700; font-size: .98rem; line-height: 1.25; }
+.mi-cat .mi-cat-count { color: var(--mi-ink-3); font-size: .84rem; }
+
+/* Professionals */
+.mi-providers { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.mi-provider {
+  background: var(--mi-surface); border: 1px solid var(--mi-border); border-radius: var(--mi-radius);
+  padding: 18px; display: flex; flex-direction: column; gap: 12px;
+  box-shadow: var(--mi-shadow-sm);
+  transition: transform .12s ease, box-shadow .14s ease, border-color .14s ease;
+}
+.mi-provider:hover { border-color: var(--mi-teal); box-shadow: var(--mi-shadow); transform: translateY(-2px); }
+.mi-provider-head { display: flex; align-items: center; gap: 12px; }
+.mi-avatar {
+  width: 52px; height: 52px; border-radius: 14px; flex: none;
+  background: linear-gradient(135deg, var(--mi-teal), var(--mi-forest)); color: #fff;
+  display: grid; place-items: center; font-weight: 800; font-size: 1.1rem; letter-spacing: .02em;
+}
+.mi-provider-name { font-weight: 750; font-size: 1.02rem; line-height: 1.2; color: var(--mi-char); overflow-wrap: anywhere; }
+.mi-provider-meta { color: var(--mi-ink-2); font-size: .86rem; margin-top: 2px; overflow-wrap: anywhere; }
+.mi-provider-rating { margin-left: auto; flex: none; display: flex; align-items: center; gap: 5px; font-size: .88rem; color: var(--mi-char); }
+.mi-provider-rating .mi-stars { color: var(--mi-amber); font-weight: 700; }
+.mi-provider-rating .mi-rating-new { color: var(--mi-ink-3); font-size: .8rem; font-weight: 600; }
+.mi-provider-rate { color: var(--mi-ink-2); font-size: .9rem; border-top: 1px solid var(--mi-border); padding-top: 12px; }
+.mi-provider-rate strong { color: var(--mi-char); font-size: 1.06rem; }
+.mi-provider .mi-btn-block { margin-top: auto; }
+
+/* Buttons (scoped) */
+.mi-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  border-radius: var(--mi-radius-sm); padding: 11px 16px; font-weight: 700; font-size: .92rem;
+  cursor: pointer; text-decoration: none; transition: background .13s ease, border-color .13s ease, transform .05s ease;
+  border: 1px solid transparent;
+}
+.mi-btn-primary { background: var(--mi-teal); color: #fff; }
+.mi-btn-primary:hover { filter: brightness(.95); text-decoration: none; }
+.mi-btn-ghost { background: transparent; border: 1px solid var(--mi-border-strong); color: var(--mi-teal); }
+.mi-btn-ghost:hover { background: var(--mi-teal-soft); text-decoration: none; }
+.mi-btn-block { margin-top: auto; align-self: stretch; }
+.mi-btn:focus-visible { outline: 3px solid var(--mi-teal-soft); outline-offset: 2px; }
+
+/* Packages */
+.mi-pkgs-mult { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.mi-pkgs-team { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.mi-pkg {
+  background: var(--mi-surface); border: 1px solid var(--mi-border); border-radius: var(--mi-radius);
+  padding: 18px; display: flex; flex-direction: column; gap: 8px;
+  box-shadow: var(--mi-shadow-sm); transition: transform .12s ease, box-shadow .14s ease;
+}
+.mi-pkg:hover { box-shadow: var(--mi-shadow); transform: translateY(-2px); }
+.mi-pkg-tag {
+  align-self: flex-start; font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+  padding: 4px 10px; border-radius: 999px;
+}
+.mi-pkg-tag.multitasking { background: var(--mi-teal-soft); color: var(--mi-teal); }
+.mi-pkg-tag.team { background: var(--mi-amber-soft); color: var(--mi-amber); }
+.mi-pkg-name { font-weight: 750; font-size: 1.08rem; color: var(--mi-char); line-height: 1.22; overflow-wrap: anywhere; }
+.mi-pkg-incl { color: var(--mi-ink-2); font-size: .88rem; }
+.mi-pkg-chip { background: var(--mi-warm); border: 1px solid var(--mi-border); border-radius: 999px; padding: 3px 9px; font-size: .78rem; color: var(--mi-ink-2); }
+.mi-pkg-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; border-top: 1px solid var(--mi-border); }
+.mi-pkg-price { color: var(--mi-char); font-weight: 750; font-size: 1.1rem; }
+.mi-pkg-price small { font-size: .8rem; color: var(--mi-ink-3); font-weight: 600; }
+.mi-pkg-desc { color: var(--mi-ink-2); font-size: .88rem; line-height: 1.5; }
+
+/* Sidebar refinement (scoped to marketplace shell) */
+/* Sidebar refinement — scoped to CUSTOMER marketplace shell only, so provider
+   screens retain their original sidebar treatment. */
+.mi-role-customer .sidebar { background: var(--mi-forest); }
+.mi-role-customer .brand small { color: rgba(255,255,255,.72); }
+.mi-role-customer .side-nav a.active { background: var(--mi-teal); }
+.mi-role-customer .side-foot { border-top-color: rgba(255,255,255,.14); }
+
+/* Empty state */
+.mi-empty { color: var(--mi-ink-2); text-align: center; padding: 40px 20px; border: 1px dashed var(--mi-border-strong); border-radius: var(--mi-radius); background: var(--mi-surface); }
+
+/* ============================================================
+   Responsive column tuning
+   ============================================================ */
+@media (min-width: 1600px) {
+  .mi-providers { grid-template-columns: repeat(4, 1fr); }
+  .mi-pkgs-mult { grid-template-columns: repeat(3, 1fr); }
+  .mi-pkgs-team { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .mi-providers { grid-template-columns: repeat(3, 1fr); }
+  .mi-pkgs-mult { grid-template-columns: repeat(2, 1fr); }
+  .mi-pkgs-team { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 601px) and (max-width: 1199px) {
+  .mi-providers { grid-template-columns: repeat(2, 1fr); }
+  .mi-pkgs-mult { grid-template-columns: repeat(2, 1fr); }
+  .mi-pkgs-team { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .mi-providers { grid-template-columns: 1fr; }
+  .mi-pkgs-mult, .mi-pkgs-team { grid-template-columns: 1fr; }
+  .mi-hero { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .mi-hero-mark { display: none; }
+  .mi-section { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .mi-root .main { padding: var(--space-3) var(--space-3) calc(var(--nav-h) + 22px); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .mi-cat, .mi-provider, .mi-pkg { transition: none; }
+}

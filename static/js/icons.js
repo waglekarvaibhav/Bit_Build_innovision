@@ -20,6 +20,15 @@ const ICONS = {
   plus: '<path d="M12 5v14M5 12h14"/>',
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>',
+  // Marketplace category icons (line style)
+  homeInt: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/><path d="m8.5 7 1-2.2-.3-2.1M10.5 8l.6-2.4-.5-2"/>',
+  bolt: '<path d="M13 3 4 14h6l-1 7 9-11h-6l1-7Z"/>',
+  leaf: '<path d="M11 20A7 7 0 0 1 4 14c0-5 3-8 8-9 4-1 7 0 8 2 .4 2-.4 6-3 8-1.8 1.4-4 1-6-1-1-1.4-1-3.5 1-5"/>',
+  wrench: '<path d="M14.7 6.3a4.5 4.5 0 0 0-6 5.4L3 17.4 6.6 21l5.7-5.7a4.5 4.5 0 0 0 5.4-6l-2.9 2.9-2.9-2.9 2.8-2.9Z"/>',
+  droplet: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11Z"/>',
+  sparkles: '<path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6Z"/><path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8Z"/>',
+  toolbox: '<path d="M9 20V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v15"/><path d="M3 9h18v11H3z"/><path d="M13 13v2h2"/>',
+  compass: '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5Z"/>',
 };
 
 function icon(name, cls = "") {

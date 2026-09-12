@@ -9,8 +9,8 @@
   --bg-elevated: #ffffff;
   --bg-muted: #f3efe7;
   --ink: #1c2b2a;           /* deep ink text */
-  --ink-2: #55605e;
-  --ink-3: #85908d;
+  --ink-2: #4b5855;         /* secondary text — improved contrast */
+  --ink-3: #6c7a76;         /* muted text — improved contrast */
   --border: #e4ddd1;
   --border-strong: #d4c9b8;
 
@@ -34,9 +34,9 @@
   --font-sans: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
-  --fs-2xs: 0.72rem;
-  --fs-xs: 0.8125rem;
-  --fs-sm: 0.875rem;
+  --fs-2xs: 0.78rem;
+  --fs-xs: 0.875rem;
+  --fs-sm: 0.925rem;
   --fs-base: 1rem;
   --fs-md: 1.0625rem;
   --fs-lg: 1.25rem;

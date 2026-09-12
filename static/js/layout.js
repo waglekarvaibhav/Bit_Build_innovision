@@ -40,7 +40,7 @@ const AppShell = {
     ).join("");
 
     app.innerHTML = `
-      <div class="app">
+      <div class="app mi-root mi-role-${esc(me.role)}">
         <aside class="sidebar">
           <div class="brand">
             <span class="logo" aria-hidden="true">CN</span>
