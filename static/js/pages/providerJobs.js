@@ -1,4 +1,4 @@
-// Provider jobs — live work board with a clear booking pipeline.
+// CrewNest NX provider jobs — kanban-style live work board.
 const ProviderJobs = {
   async render() {
     if (!requireRole("provider")) return;
@@ -12,47 +12,48 @@ const ProviderJobs = {
     catch (e) { showFatal(e, el); return; }
 
     const pending = rows.filter(b => b.status === "pending");
-    const accepted = rows.filter(b => b.status === "accepted");
+    const active = rows.filter(b => b.status === "accepted");
     const review = rows.filter(b => b.status === "completion_requested");
-    const ongoing = rows.filter(b => ["accepted", "completion_requested"].includes(b.status));
     const completed = rows.filter(b => b.status === "completed");
-    const other = rows.filter(b => !["pending", "accepted", "completion_requested", "completed"].includes(b.status));
+    const closed = rows.filter(b => ["rejected","cancelled"].includes(b.status));
 
     el.innerHTML = `
-      <section class="pv-page-banner">
-        <div><span class="pv-eyebrow">${icon("clock")} Work board</span><h1>My jobs</h1><p>Track every booking from acceptance to completion.</p></div>
-        <div class="pv-count">${ongoing.length}</div>
+      <div class="nx-topline">
+        <div class="nx-title-wrap"><div class="nx-kicker"><i></i> Live operations</div><h1 class="nx-title">Jobs</h1><p class="nx-sub">Move work from accepted to reviewed to complete.</p></div>
+        <div class="nx-top-actions"><span class="nx-pill">${active.length + review.length} live</span><span class="nx-pill">${completed.length} completed</span></div>
+      </div>
+
+      <section class="nx-pipeline">
+        ${this._pipe("Requests", pending.length)}
+        ${this._pipe("Accepted", active.length)}
+        ${this._pipe("Review", review.length)}
+        ${this._pipe("Done", completed.length)}
       </section>
 
-      <section class="pv-flow-board">
-        ${this._flowStep("Request", pending.length, "Customer asks", "01", pending.length > 0)}
-        ${this._flowStep("Accepted", accepted.length, "Work confirmed", "02", accepted.length > 0)}
-        ${this._flowStep("Review", review.length, "Awaiting customer", "03", review.length > 0)}
-        ${this._flowStep("Done", completed.length, "Completed", "04", completed.length > 0)}
+      <section class="nx-kanban">
+        ${this._column("Active", "Work currently in progress.", active, "active")}
+        ${this._column("Awaiting review", "Completion requested; waiting on customer.", review, "review")}
+        ${this._column("Completed", "Finished jobs and history.", completed, "done")}
       </section>
 
-      ${this._section("Live work", "Accepted jobs and completion follow-ups.", ongoing, true)}
-      ${this._section("Completed", "Finished work kept for your history.", completed, false)}
-      ${other.length ? this._section("Other", "Rejected or cancelled bookings.", other, false) : ""}
+      ${closed.length ? `<section class="nx-card nx-section" style="margin-top:12px"><div class="nx-section-head"><h2>Closed without completion</h2><span class="nx-tag">${closed.length}</span></div><div class="nx-history-list">${closed.map(b => this._closedRow(b)).join("")}</div></section>` : ""}
     `;
   },
 
-  _flowStep(label, count, sub, index, active) {
-    return `<div class="pv-flow-step ${active ? "active" : ""}"><span class="pv-flow-index">${index}</span><div class="pv-flow-dot"></div><div><strong>${count}</strong><h3>${label}</h3><small>${sub}</small></div></div>`;
+  _pipe(label, count) {
+    return `<div class="nx-card nx-pipe"><small>${label}</small><strong>${count}</strong></div>`;
   },
 
-  _section(title, sub, rows, primary) {
-    return `<section class="pv-panel" style="margin-bottom:14px">
-      <div class="pv-panel-head"><div><h2>${title}</h2><div class="pv-panel-sub">${sub}</div></div><span class="pv-chip ${primary ? "mint" : ""}">${rows.length}</span></div>
-      <div class="pv-task-list">${rows.length ? rows.map(b => this._jobCard(b, primary)).join("") : `<div class="pv-empty"><strong>Nothing here yet</strong>${primary ? "Accepted work will appear here as soon as you confirm a request." : "No bookings in this state."}</div>`}</div>
-    </section>`;
+  _column(title, sub, rows, kind) {
+    return `<article class="nx-card nx-kanban-col"><div class="nx-kanban-head"><div><h2>${title}</h2><div class="nx-meta">${sub}</div></div><span class="nx-count">${rows.length}</span></div>${rows.length ? rows.map(b => this._jobCard(b, kind)).join("") : `<div class="nx-empty"><div><strong>Nothing here</strong><span>${kind === "active" ? "Accepted jobs will appear here." : kind === "review" ? "Completion requests will appear here." : "Completed work will appear here."}</span></div></div>`}</article>`;
   },
 
-  _jobCard(b, primary) {
-    return `<a class="pv-task" href="/provider-booking/${b.id}">
-      <div><div class="pv-task-title">${esc(b.item_description)}</div><div class="pv-task-meta">${esc(b.customer_name)} · ${fmtDate(b.booking_date)} at ${esc(b.booking_time)}</div>
-        <div class="pv-task-tags">${statusBadge(b.status)}${b.package_type_snapshot ? `<span class="pv-chip">${esc(b.package_type_snapshot)}${b.package_lead_name ? " · Lead: "+esc(b.package_lead_name) : ""}</span>` : `<span class="pv-chip">Individual</span>`}<span class="pv-chip coral">${money(b.quoted_price)}</span></div>
-      </div><div class="pv-task-action"><span class="btn sm ${primary ? "primary" : "ghost"}">${primary ? "Continue job" : "View details"}</span></div>
-    </a>`;
+  _jobCard(b, kind) {
+    const type = b.package_type_snapshot ? `${b.package_type_snapshot}${b.package_name_snapshot ? " · "+b.package_name_snapshot : ""}` : "Individual";
+    return `<a class="nx-job" href="/provider-booking/${b.id}"><strong>${esc(b.item_description)}</strong><small>${esc(b.customer_name)} · ${fmtDate(b.booking_date)} · ${esc(b.booking_time)}</small><div class="nx-tags"><span class="nx-tag ${kind === "done" ? "lime" : "violet"}">${STATUS_LABEL[b.status] || esc(b.status)}</span><span class="nx-tag">${esc(type)}</span></div><div class="nx-job-foot"><b>${money(b.quoted_price)}</b><span>OPEN →</span></div></a>`;
+  },
+
+  _closedRow(b) {
+    return `<a class="nx-history-item" href="/provider-booking/${b.id}"><div><strong>${esc(b.item_description)}</strong><small>${esc(b.customer_name)} · ${STATUS_LABEL[b.status] || esc(b.status)}</small></div><b>${money(b.quoted_price)}</b></a>`;
   },
 };
