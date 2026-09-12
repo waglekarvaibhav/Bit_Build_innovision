@@ -1,0 +1,12 @@
+.mi-role-customer .cn-mobile-topbar{display:none;position:relative;z-index:2;align-items:center;gap:12px;margin-bottom:28px;color:#fff}
+.mi-role-customer .cn-mini-brand{display:flex;align-items:center;gap:9px;margin-right:auto}
+.mi-role-customer .cn-mini-brand span{width:34px;height:34px;border:2px solid #efbd76;border-radius:11px;display:grid;place-items:center;font-size:.68rem;font-weight:900;color:#efbd76;transform:rotate(45deg)}
+.mi-role-customer .cn-mini-brand span::first-line{transform:rotate(-45deg)}
+.mi-role-customer .cn-mini-brand strong{font-size:1.05rem;letter-spacing:-.02em}
+.mi-role-customer .cn-mini-location{display:flex;align-items:center;gap:5px;font-size:.82rem;font-weight:700;color:#f7eee1}
+.mi-role-customer .cn-mini-location .ico{color:#ffad68}
+.mi-role-customer .cn-mini-avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#f7e6d2;color:#17382f;font-weight:800;text-decoration:none;border:2px solid rgba(255,255,255,.45)}
+.mi-role-customer .cn-home-hero,.mi-role-customer .mi-cat,.mi-role-customer .mi-provider,.mi-role-customer .mi-pkg{animation:cn-ref-in .42s cubic-bezier(.2,.8,.2,1) both}
+@keyframes cn-ref-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media(max-width:900px){.mi-role-customer .cn-mobile-topbar{display:flex}.mi-role-customer .cn-kicker{margin-bottom:14px}.mi-role-customer .cn-hero-actions{margin-top:18px}.mi-role-customer .cn-hero-btn{min-height:46px}.mi-role-customer .cn-market-stats{margin-top:20px}.mi-role-customer .cn-section{padding-top:16px}.mi-role-customer .mi-cats{gap:8px}.mi-role-customer .mi-cat{min-height:98px;padding:12px}.mi-role-customer .mi-provider{padding:15px!important}.mi-role-customer .mi-provider-rate{padding-top:9px!important}.mi-role-customer .mi-btn{padding:10px 13px}}
+@media(max-width:520px){.mi-role-customer .cn-mobile-topbar{margin-bottom:24px}.mi-role-customer .cn-mini-brand strong{font-size:1rem}.mi-role-customer .cn-mini-location{font-size:.78rem}.mi-role-customer .cn-home-hero{min-height:405px}.mi-role-customer .cn-home-hero p{margin-top:12px}.mi-role-customer .cn-market-stat strong{font-size:.96rem}.mi-role-customer .cn-market-stat{padding:9px 6px}.mi-role-customer .cn-search-box{gap:4px}.mi-role-customer .cn-search-input-wrap{padding:0 6px}.mi-role-customer .cn-locality{padding:7px 10px;font-size:.76rem}}
