@@ -11,8 +11,17 @@ const ProviderRequests = {
     try { rows = (await API.get("/api/providers/bookings")).bookings; }
     catch (e) { showFatal(e, el); return; }
 
-    const pending = rows.filter(b => b.status === "pending");
-    const history = rows.filter(b => b.status !== "pending");
+    const me = Auth.user();
+    const meId = Number(me.id || me.user_id);
+    const canDecide = b => {
+      if (b.package_type_snapshot === "team") {
+        return Number(b.package_lead_snapshot) === meId;
+      }
+      return Number(b.provider_id) === meId;
+    };
+    const decisionRows = rows.filter(canDecide);
+    const pending = decisionRows.filter(b => b.status === "pending");
+    const history = decisionRows.filter(b => b.status !== "pending");
     const accepted = history.filter(b => b.status === "accepted").length;
     const completed = history.filter(b => b.status === "completed").length;
 
@@ -25,11 +34,11 @@ const ProviderRequests = {
       <section class="atlas-request-layout">
         <article class="atlas-card atlas-queue">
           <div class="atlas-card-head"><div><h2>Needs a decision</h2><p>${pending.length ? `${pending.length} customer request${pending.length===1?"":"s"} waiting.` : "You’re all caught up."}</p></div><span class="atlas-count">${pending.length}</span></div>
-          <div id="pending-list">${pending.length ? pending.map(b => this._pending(b)).join("") : `<div class="atlas-empty"><div><strong>Queue empty</strong><span>New requests will land here.</span></div></div>`}</div>
+          <div id="pending-list">${pending.length ? pending.map(b => this._pending(b)).join("") : `<div class="atlas-empty"><div><strong>Queue empty</strong><span>New requests that need your decision will land here.</span></div></div>`}</div>
         </article>
 
         <article class="atlas-card atlas-history">
-          <div class="atlas-card-head"><div><h2>Decision history</h2><p>Accepted, completed, rejected and cancelled bookings.</p></div><span class="atlas-count">${history.length}</span></div>
+          <div class="atlas-card-head"><div><h2>Decision history</h2><p>Accepted, completed, rejected and cancelled bookings you managed.</p></div><span class="atlas-count">${history.length}</span></div>
           <div class="atlas-history-list">${history.length ? history.map(b => this._history(b)).join("") : `<div class="atlas-empty"><div><strong>No history yet</strong><span>Your handled requests will build up here.</span></div></div>`}</div>
         </article>
       </section>
