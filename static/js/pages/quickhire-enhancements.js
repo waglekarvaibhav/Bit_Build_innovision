@@ -6,6 +6,7 @@
   const originalStepSelect = QuickHire.stepSelect;
   const originalStepDetails = QuickHire.stepDetails;
   const originalStepPackage = QuickHire.stepPackage;
+  const originalStepReview = QuickHire.stepReview;
 
   QuickHire.render = async function () {
     // QuickHire is a global page object, so clear transient state whenever the
@@ -121,13 +122,96 @@
     if (input.value && input.value < today) input.value = today;
   }
 
+  function restoreDetails(details, billingUnit) {
+    if (!details) return;
+    const values = {
+      "d-item": details.item,
+      "d-address": details.addr,
+      "d-date": details.date,
+      "d-time": details.time,
+      "d-hours": details.hours,
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const input = document.getElementById(id);
+      if (input && value !== undefined && value !== null) input.value = value;
+    });
+    const unit = document.getElementById("d-unit");
+    if (unit && billingUnit) unit.value = billingUnit;
+  }
+
+  function lockPackageBilling(ctx) {
+    if (!ctx.state.packageId) return;
+    ctx.state.billingUnit = "hourly";
+    const unit = document.getElementById("d-unit");
+    if (!unit) return;
+    unit.innerHTML = `<option value="hourly">Hourly</option>`;
+    unit.value = "hourly";
+    unit.disabled = true;
+    if (!document.getElementById("package-billing-note")) {
+      unit.insertAdjacentHTML(
+        "afterend",
+        `<div class="xsmall muted" id="package-billing-note" style="margin-top:6px">Package pricing is fixed at the published hourly rate.</div>`
+      );
+    }
+  }
+
   QuickHire.stepDetails = function (svcName) {
     originalStepDetails.call(this, svcName);
+    restoreDetails(this.state.details, this.state.billingUnit);
     enforceDateFloor();
+    lockPackageBilling(this);
   };
 
   QuickHire.stepPackage = function () {
     originalStepPackage.call(this);
+    restoreDetails(this.state.details, "hourly");
     enforceDateFloor();
+    lockPackageBilling(this);
+  };
+
+  QuickHire.stepReview = async function (svcName) {
+    await originalStepReview.call(this, svcName);
+
+    // Replace the original submit handler so recoverable server errors stay on
+    // the review screen with the user's data intact instead of redrawing step 3.
+    const originalButton = document.getElementById("submit-btn");
+    if (!originalButton) return;
+    const button = originalButton.cloneNode(true);
+    originalButton.replaceWith(button);
+
+    button.addEventListener("click", async () => {
+      const d = this.state.details;
+      const errEl = document.getElementById("submit-err");
+      button.disabled = true;
+      if (errEl) {
+        errEl.textContent = "";
+        errEl.style.display = "none";
+      }
+
+      const payload = {
+        service_id: this.state.serviceId,
+        provider_id: this.state.providerId,
+        package_id: this.state.packageId,
+        item_description: d.item,
+        address: d.addr,
+        booking_date: d.date,
+        booking_time: d.time,
+        duration_hours: d.hours,
+        billing_unit: this.state.packageId ? "hourly" : this.state.billingUnit,
+      };
+
+      try {
+        const booking = await API.post("/api/customers/bookings", payload);
+        Toast.success("Booking request submitted");
+        location.href = "/booking/" + booking.id;
+      } catch (ex) {
+        if (errEl) {
+          errEl.textContent = ex.message;
+          errEl.style.display = "block";
+        }
+        Toast.error(ex.message);
+        button.disabled = false;
+      }
+    });
   };
 })();
