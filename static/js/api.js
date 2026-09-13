@@ -17,17 +17,24 @@ const API = {
     const retryable = method === "GET" && opts.retry !== false;
     const retryDelays = opts.retryDelays || [1200, 2500, 5000, 8000, 12000, 15000];
     const retryStatuses = new Set([502, 503, 504]);
+    const timeoutMs = opts.timeoutMs || 12000;
     let res = null;
 
     for (let attempt = 0; attempt <= retryDelays.length; attempt += 1) {
+      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+      const attemptInit = controller ? { ...init, signal: controller.signal } : init;
+
       try {
-        res = await fetch(this.base + path, init);
+        res = await fetch(this.base + path, attemptInit);
       } catch (e) {
         if (retryable && attempt < retryDelays.length) {
           await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]));
           continue;
         }
         throw new Error("JobHustle could not connect to the server. Please try again.");
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
       }
 
       if (retryable && retryStatuses.has(res.status) && attempt < retryDelays.length) {
