@@ -22,7 +22,7 @@ const QuickHire = {
     try {
       [categories, { localities }] = await Promise.all([
         API.get("/api/service-categories"),
-        API.get("/api/localities"),
+        API.get("/api/localities", { retry: false }),
       ]);
     } catch (e) {
       showFatal(e, el);

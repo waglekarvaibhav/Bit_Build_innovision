@@ -9,14 +9,15 @@ const ProviderPublic = {
     const page = AppShell.page(head);
     const el = page.el;
     el.innerHTML = `<div class="skeleton"></div>`;
+    const reviewsPromise = API.get("/api/providers/" + params.id + "/reviews", { retry: false })
+      .then(rows => Array.isArray(rows) ? rows : [])
+      .catch(() => []);
     let p;
     try { p = await API.get("/api/providers/" + params.id); }
     catch (e) {
       el.innerHTML = `<div class="state-box">${esc(e.message)}</div>`; return;
     }
-    let reviews = [];
-    try { reviews = (await API.get("/api/providers/" + params.id + "/reviews")) || []; }
-    catch (e) {}
+    const reviews = await reviewsPromise;
 
     el.innerHTML = `
       <div class="card">

@@ -11,10 +11,13 @@ const ProviderHome = {
     const el = page.el;
     el.innerHTML = `<div class="skeleton"></div>`;
 
+    const packagesPromise = this._pkgCards();
     let prof, bookings;
     try {
-      const p = await API.get("/api/providers/me");
-      const b = await API.get("/api/providers/bookings");
+      const [p, b] = await Promise.all([
+        API.get("/api/providers/me"),
+        API.get("/api/providers/bookings"),
+      ]);
       prof = p; bookings = b.bookings;
     } catch (e) { showFatal(e, el); return; }
 
@@ -68,7 +71,7 @@ const ProviderHome = {
       <div id="pkg-box"><div class="state-box"><div class="spinner"></div></div></div>
     `;
 
-    document.getElementById("pkg-box").innerHTML = await this._pkgCards();
+    document.getElementById("pkg-box").innerHTML = await packagesPromise;
 
     el.querySelector("#toggle-avail").addEventListener("click", async () => {
       try {

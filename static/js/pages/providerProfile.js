@@ -12,8 +12,10 @@ const ProviderProfilePage = {
 
     let data, svcs;
     try {
-      data = await API.get("/api/providers/me");
-      svcs = await API.get("/api/services");
+      [data, svcs] = await Promise.all([
+        API.get("/api/providers/me"),
+        API.get("/api/services"),
+      ]);
     } catch (e) { showFatal(e, el); return; }
     const prof = data.profile;
     const mine = data.services;

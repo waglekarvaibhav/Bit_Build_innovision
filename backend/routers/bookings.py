@@ -13,7 +13,7 @@ import json
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from ..database import get_db
 from ..dependencies import get_current_user, require_role
@@ -45,6 +45,15 @@ from ..services import (
 )
 
 router = APIRouter(prefix="/api", tags=["bookings"])
+
+
+def _booking_load_options():
+    return (
+        joinedload(Booking.customer),
+        joinedload(Booking.provider),
+        joinedload(Booking.service),
+        selectinload(Booking.participants),
+    )
 
 
 def _serialize_booking(db: Session, b: Booking) -> dict:
@@ -200,7 +209,13 @@ def create_booking(
 
 @router.get("/customers/bookings")
 def customer_bookings(db: Session = Depends(get_db), user: User = Depends(require_role(Role.customer))):
-    rows = db.query(Booking).filter(Booking.customer_id == user.id).order_by(Booking.created_at.desc()).all()
+    rows = (
+        db.query(Booking)
+        .options(*_booking_load_options())
+        .filter(Booking.customer_id == user.id)
+        .order_by(Booking.created_at.desc())
+        .all()
+    )
     return {"bookings": [_serialize_booking(db, b) for b in rows]}
 
 
@@ -212,6 +227,7 @@ def provider_bookings(db: Session = Depends(get_db), user: User = Depends(requir
     }
     rows = (
         db.query(Booking)
+        .options(*_booking_load_options())
         .filter((Booking.provider_id == user.id) | (Booking.id.in_(participant_ids)))
         .order_by(Booking.created_at.desc())
         .all()
@@ -220,7 +236,12 @@ def provider_bookings(db: Session = Depends(get_db), user: User = Depends(requir
 
 
 def _get_booking_or_404(db: Session, booking_id: int) -> Booking:
-    b = db.get(Booking, booking_id)
+    b = (
+        db.query(Booking)
+        .options(*_booking_load_options())
+        .filter(Booking.id == booking_id)
+        .first()
+    )
     if b is None:
         raise HTTPException(status_code=404, detail="Booking not found")
     return b
@@ -443,6 +464,7 @@ def provider_reviews(provider_id: int, db: Session = Depends(get_db)):
 
     rows = (
         db.query(Review)
+        .options(joinedload(Review.customer))
         .filter(Review.provider_id == provider_id)
         .order_by(Review.created_at.desc())
         .all()

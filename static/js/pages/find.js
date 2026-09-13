@@ -17,7 +17,9 @@ const FindPage = {
     let cats = [], providers = [], localities = [];
     try {
       const [c, p, l] = await Promise.all([
-        API.get("/api/service-categories"), API.get("/api/providers"), API.get("/api/localities"),
+        API.get("/api/service-categories"),
+        API.get("/api/providers"),
+        API.get("/api/localities", { retry: false }),
       ]);
       cats = c; providers = p; localities = l.localities;
     } catch (e) { showFatal(e, el); return; }

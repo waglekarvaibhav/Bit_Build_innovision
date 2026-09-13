@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from ..database import get_db
 from ..dependencies import require_role
@@ -60,7 +60,17 @@ def update_customer_profile(
 
 @router.get("/providers/me", response_model=dict)
 def get_provider_profile(db: Session = Depends(get_db), user: User = Depends(require_role(Role.provider))):
-    return _provider_profile_dict(db, user)
+    loaded_user = (
+        db.query(User)
+        .options(
+            joinedload(User.provider_profile)
+            .selectinload(ProviderProfile.services)
+            .joinedload(ProviderService.service)
+        )
+        .filter(User.id == user.id)
+        .first()
+    )
+    return _provider_profile_dict(db, loaded_user or user)
 
 
 def _provider_profile_dict(db: Session, user: User) -> dict:

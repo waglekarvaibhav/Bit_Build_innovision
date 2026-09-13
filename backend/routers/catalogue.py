@@ -7,13 +7,15 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from ..database import get_db
 from ..models import (
     BillingUnit,
     GOA_LOCALITIES,
     Package,
+    PackageMember,
+    PackageServiceBundle,
     PackageStatus,
     PackageType,
     ProviderProfile,
@@ -38,9 +40,15 @@ def _profile_rating(db: Session, user_id: int):
     return float(avg or 0), int(count or 0)
 
 
-def _public_provider(db: Session, prof: ProviderProfile, include_rates: bool = True) -> dict:
+def _public_provider(
+    db: Session,
+    prof: ProviderProfile,
+    include_rates: bool = True,
+    rating: tuple[float, int] | None = None,
+) -> dict:
     user = prof.user
-    avg, count = _profile_rating(db, user.id)
+    avg, count = rating if rating is not None else _profile_rating(db, user.id)
+    avg, count = float(avg or 0), int(count or 0)
     services = []
     for ps in prof.services:
         services.append(
@@ -74,7 +82,12 @@ def get_localities():
 
 @router.get("/service-categories")
 def get_service_categories(db: Session = Depends(get_db)):
-    cats = db.query(ServiceCategory).order_by(ServiceCategory.name).all()
+    cats = (
+        db.query(ServiceCategory)
+        .options(selectinload(ServiceCategory.services))
+        .order_by(ServiceCategory.name)
+        .all()
+    )
     return [
         {
             "id": c.id,
@@ -99,7 +112,12 @@ def list_services(db: Session = Depends(get_db)):
             "category_id": s.category_id,
             "category": s.category.name if s.category else None,
         }
-        for s in db.query(Service).order_by(Service.name).all()
+        for s in (
+            db.query(Service)
+            .options(joinedload(Service.category))
+            .order_by(Service.name)
+            .all()
+        )
     ]
 
 
@@ -116,7 +134,10 @@ def list_providers(
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
 ):
-    q = db.query(ProviderProfile)
+    q = db.query(ProviderProfile).options(
+        joinedload(ProviderProfile.user),
+        selectinload(ProviderProfile.services).joinedload(ProviderService.service),
+    )
     if service_id is not None:
         q = q.join(ProviderService).filter(ProviderService.service_id == service_id)
     if locality:
@@ -125,10 +146,20 @@ def list_providers(
         q = q.filter(ProviderProfile.available.is_(available))
 
     profiles = q.order_by(ProviderProfile.id).all()
+    provider_ids = [prof.user_id for prof in profiles]
+    rating_rows = (
+        db.query(Review.provider_id, func.avg(Review.rating), func.count(Review.id))
+        .filter(Review.provider_id.in_(provider_ids))
+        .group_by(Review.provider_id)
+        .all()
+        if provider_ids
+        else []
+    )
+    ratings = {provider_id: (avg, count) for provider_id, avg, count in rating_rows}
 
     rows = []
     for prof in profiles:
-        row = _public_provider(db, prof)
+        row = _public_provider(db, prof, rating=ratings.get(prof.user_id, (0, 0)))
         if min_price is not None or max_price is not None:
             rates = [ps.hourly_rate for ps in prof.services if ps.hourly_rate is not None]
             if not rates:
@@ -139,10 +170,9 @@ def list_providers(
             if max_price is not None and low > max_price:
                 continue
         if min_rating is not None:
-            r, c = _profile_rating(db, prof.user_id)
-            if c == 0:
+            if row["review_count"] == 0:
                 continue
-            if r < min_rating:
+            if row["rating"] < min_rating:
                 continue
         rows.append(row)
 
@@ -164,6 +194,10 @@ def get_provider(provider_id: int, db: Session = Depends(get_db)):
     # ProviderProfile.id is an internal row id and is not guaranteed to match it.
     prof = (
         db.query(ProviderProfile)
+        .options(
+            joinedload(ProviderProfile.user),
+            selectinload(ProviderProfile.services).joinedload(ProviderService.service),
+        )
         .filter(ProviderProfile.user_id == provider_id)
         .first()
     )
@@ -180,7 +214,7 @@ def list_packages(
     include_archived: bool = False,
     limit: int = Query(100, ge=1, le=500),
 ):
-    q = db.query(Package)
+    q = db.query(Package).options(*_package_load_options())
     if not include_archived:
         # Public/customer discovery must only expose packages that can actually
         # be booked. Drafts remain available through provider-management APIs.
@@ -195,10 +229,23 @@ def list_packages(
 
 @router.get("/packages/{package_id}")
 def get_package(package_id: int, db: Session = Depends(get_db)):
-    pkg = db.get(Package, package_id)
+    pkg = (
+        db.query(Package)
+        .options(*_package_load_options())
+        .filter(Package.id == package_id)
+        .first()
+    )
     if pkg is None:
         raise HTTPException(status_code=404, detail="Package not found")
     return _package_dict(pkg)
+
+
+def _package_load_options():
+    return (
+        joinedload(Package.owner),
+        selectinload(Package.services).joinedload(PackageServiceBundle.service),
+        selectinload(Package.members).joinedload(PackageMember.user),
+    )
 
 
 def _package_dict(pkg: Package) -> dict:

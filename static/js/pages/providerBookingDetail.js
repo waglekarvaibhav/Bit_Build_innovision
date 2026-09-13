@@ -12,6 +12,9 @@ const ProviderBookingDetail = {
     const page = AppShell.page(head);
     const el = page.el;
     el.innerHTML = `<div class="skeleton"></div>`;
+    const photosPromise = API.get(`/api/bookings/${params.id}/photos`, { retry: false })
+      .then(rows => Array.isArray(rows) ? rows : [])
+      .catch(() => []);
 
     let b;
     try { b = await API.get(`/api/bookings/${params.id}`); }
@@ -25,8 +28,7 @@ const ProviderBookingDetail = {
     const memberList = (b.package_members_snapshot || []);
     const typeLabel = b.package_type_snapshot || "Individual";
 
-    let photos = [];
-    try { photos = (await API.get(`/api/bookings/${params.id}/photos`)) || []; } catch (e) {}
+    const photos = await photosPromise;
 
     el.innerHTML = `
       <div class="card">

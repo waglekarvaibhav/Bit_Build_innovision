@@ -15,6 +15,12 @@ const BookingDetail = {
     const page = AppShell.page(head);
     const el = page.el;
     el.innerHTML = `<div class="skeleton"></div>`;
+    const contactPromise = me.role === "customer"
+      ? API.get(`/api/bookings/${params.id}/contact`, { retry: false }).catch(() => null)
+      : Promise.resolve(null);
+    const photosPromise = API.get(`/api/bookings/${params.id}/photos`, { retry: false })
+      .then(rows => Array.isArray(rows) ? rows : [])
+      .catch(() => []);
 
     let b;
     try { b = await API.get(`/api/bookings/${params.id}`); }
@@ -25,9 +31,11 @@ const BookingDetail = {
     const isMember = me.role === "provider" && !isLead && this._isMember(b, me.id);
     page.head.innerHTML = `<a class="small" href="${isCustomer ? "/activity" : "/provider-jobs"}">← ${isCustomer ? "My Bookings" : "My Jobs"}</a>`;
 
-    // Determine allowed actions based on status + role.
-    let contact = null;
-    if (isCustomer) { try { contact = await API.get(`/api/bookings/${params.id}/contact`); } catch (e) {} }
+    // Optional detail requests are independent; load them together.
+    const [contact, photos] = await Promise.all([
+      isCustomer ? contactPromise : Promise.resolve(null),
+      photosPromise,
+    ]);
 
     const servicesList = b.package_services_snapshot && b.package_services_snapshot.length
       ? b.package_services_snapshot : [];
@@ -35,8 +43,6 @@ const BookingDetail = {
       ? b.package_members_snapshot : [];
 
     const typeLabel = b.package_type_snapshot || "Individual";
-    let photos = [];
-    try { photos = (await API.get(`/api/bookings/${params.id}/photos`)) || []; } catch (e) {}
 
     el.innerHTML = `
       <div class="card">

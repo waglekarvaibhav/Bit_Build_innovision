@@ -12,7 +12,7 @@ Booking-time snapshots preserve the agreement after later package edits/archival
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from ..database import get_db
 from ..dependencies import require_role
@@ -29,6 +29,14 @@ from ..schemas import PackageCreateIn, PackageUpdateIn
 from ..services import validate_package
 
 router = APIRouter(prefix="/api/providers", tags=["packages"])
+
+
+def _package_load_options():
+    return (
+        joinedload(Package.owner),
+        selectinload(Package.services).joinedload(PackageServiceBundle.service),
+        selectinload(Package.members).joinedload(PackageMember.user),
+    )
 
 
 def _package_service_names(pkg: Package) -> list[str]:
@@ -65,7 +73,13 @@ def my_packages(
     db: Session = Depends(get_db),
     user: User = Depends(require_role(Role.provider)),
 ):
-    rows = db.query(Package).filter(Package.owner_id == user.id).order_by(Package.created_at.desc()).all()
+    rows = (
+        db.query(Package)
+        .options(*_package_load_options())
+        .filter(Package.owner_id == user.id)
+        .order_by(Package.created_at.desc())
+        .all()
+    )
     return {"packages": [_package_dict(p) for p in rows]}
 
 
@@ -129,7 +143,12 @@ def get_my_package(
     db: Session = Depends(get_db),
     user: User = Depends(require_role(Role.provider)),
 ):
-    pkg = db.get(Package, package_id)
+    pkg = (
+        db.query(Package)
+        .options(*_package_load_options())
+        .filter(Package.id == package_id)
+        .first()
+    )
     if pkg is None:
         raise HTTPException(status_code=404, detail="Package not found")
     # Ownership + membership access: owner or any team member may view.

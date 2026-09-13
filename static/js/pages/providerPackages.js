@@ -14,8 +14,10 @@ const ProviderPackages = {
 
     let pkgs, svcs;
     try {
-      const p = await API.get("/api/providers/me/packages");
-      const s = await API.get("/api/services");
+      const [p, s] = await Promise.all([
+        API.get("/api/providers/me/packages"),
+        API.get("/api/services"),
+      ]);
       pkgs = p.packages; svcs = s;
     } catch (e) { showFatal(e, el); return; }
 

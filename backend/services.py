@@ -11,8 +11,8 @@ import json
 from datetime import date
 
 from fastapi import HTTPException, status
-from sqlalchemy import and_, or_
-from sqlalchemy.orm import Session
+from sqlalchemy import and_, func, or_
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from .models import (
     Booking,
@@ -26,6 +26,7 @@ from .models import (
     PackageType,
     ProviderProfile,
     ProviderService,
+    Review,
     Role,
     Service,
     User,
@@ -306,8 +307,28 @@ def rank_providers_for_shortlist(
 
     Reasons returned are derived from the actual data that triggered each rule.
     """
-    query = db.query(ProviderProfile).filter(ProviderProfile.available.is_(True))
+    query = (
+        db.query(ProviderProfile)
+        .options(
+            joinedload(ProviderProfile.user),
+            selectinload(ProviderProfile.services),
+        )
+        .filter(ProviderProfile.available.is_(True))
+    )
     profiles = query.all()
+    provider_ids = [prof.user_id for prof in profiles]
+    rating_rows = (
+        db.query(Review.provider_id, func.avg(Review.rating), func.count(Review.id))
+        .filter(Review.provider_id.in_(provider_ids))
+        .group_by(Review.provider_id)
+        .all()
+        if provider_ids
+        else []
+    )
+    ratings = {
+        provider_id: (float(avg or 0), int(count or 0))
+        for provider_id, avg, count in rating_rows
+    }
 
     results: list[dict] = []
     for prof in profiles:
@@ -317,13 +338,9 @@ def rank_providers_for_shortlist(
 
         offered: ProviderService | None = None
         if service_id is not None:
-            offered = (
-                db.query(ProviderService)
-                .filter(
-                    ProviderService.provider_profile_id == prof.id,
-                    ProviderService.service_id == service_id,
-                )
-                .first()
+            offered = next(
+                (service for service in prof.services if service.service_id == service_id),
+                None,
             )
             if offered is not None:
                 score += 3
@@ -362,7 +379,7 @@ def rank_providers_for_shortlist(
             score += 1
             reasons.append("Within your budget")
 
-        rating_tuple = _provider_rating(db, prof.id)
+        rating_tuple = ratings.get(prof.user_id, (0.0, 0))
         avg_rating = rating_tuple[0]  # None when missing -> neutral
         raw_rating = rating_tuple[1]
         if avg_rating is None:
@@ -442,6 +459,11 @@ def suggest_packages_for_goal(
 
     packages = (
         db.query(Package)
+        .options(
+            joinedload(Package.owner),
+            selectinload(Package.services).joinedload(PackageServiceBundle.service),
+            selectinload(Package.members).joinedload(PackageMember.user),
+        )
         .filter(Package.status == PackageStatus.published)
         .all()
     )
