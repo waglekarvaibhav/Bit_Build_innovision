@@ -11,7 +11,7 @@ const PackagesPage = {
     let packages;
     try { packages = (await API.get("/api/packages")) || []; }
     catch (e) { showFatal(e, el); return; }
-    const active = packages.filter(p => p.status !== "archived");
+    const active = packages.filter(p => p.status === "published");
     if (!active.length) {
       el.innerHTML = `<div class="state-box"><div class="big">📦</div><p>No packages are available right now.</p></div>`;
       return;
@@ -57,8 +57,8 @@ const PackageDetail = {
       el.innerHTML = `<div class="state-box"><div class="big">📦</div><p>${esc(e.message)}</p><a class="btn sm mt-1" href="/packages">Browse packages</a></div>`;
       return;
     }
-    if (p.status === "archived") {
-      el.innerHTML = `<div class="state-box"><div class="big">🔒</div><p>This package is no longer available for new bookings.</p><a class="btn sm mt-1" href="/packages">Browse packages</a></div>`;
+    if (p.status !== "published") {
+      el.innerHTML = `<div class="state-box"><div class="big">🔒</div><p>This package is not currently available for new bookings.</p><a class="btn sm mt-1" href="/packages">Browse packages</a></div>`;
       return;
     }
 
