@@ -33,14 +33,6 @@ const AuthPage = {
               <button class="mi-login-submit" type="submit">Sign in to JobHustle <span>↗</span></button>
             </form>
             <p class="mi-login-switch">New here? <a href="/register">Create an account</a></p>
-            <div class="mi-login-demo">
-              <strong>Explore the live demo</strong>
-              <p>Choose a side of the marketplace—no typing required.</p>
-              <div class="mi-demo-actions">
-                <button type="button" data-demo="customer">Explore as customer <span>→</span></button>
-                <button type="button" data-demo="provider">Run provider ops <span>→</span></button>
-              </div>
-            </div>
           </div>
         </div>
       </div>`;
@@ -65,15 +57,6 @@ const AuthPage = {
         } else Toast.error(ex.message);
         btn.disabled = false;
       }
-    });
-    document.querySelectorAll("[data-demo]").forEach(button => {
-      button.addEventListener("click", () => {
-        document.getElementById("l-email").value = button.dataset.demo === "customer"
-          ? "aarav@crewneat.demo"
-          : "priya@crewneat.demo";
-        document.getElementById("l-pass").value = "DemoPass123!";
-        document.getElementById("login-form").requestSubmit();
-      });
     });
   },
 
