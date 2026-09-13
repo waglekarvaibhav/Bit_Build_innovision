@@ -11,7 +11,15 @@ const ProviderJobs = {
     try { rows = (await API.get("/api/providers/bookings")).bookings; }
     catch (e) { showFatal(e, el); return; }
 
-    const pending = rows.filter(b => b.status === "pending");
+    const me = Auth.user();
+    const meId = Number(me.id || me.user_id);
+    const canDecide = b => {
+      if (b.package_type_snapshot === "team") {
+        return Number(b.package_lead_snapshot) === meId;
+      }
+      return Number(b.provider_id) === meId;
+    };
+    const pending = rows.filter(b => b.status === "pending" && canDecide(b));
     const active = rows.filter(b => b.status === "accepted");
     const review = rows.filter(b => b.status === "completion_requested");
     const completed = rows.filter(b => b.status === "completed");
