@@ -1,9 +1,8 @@
 """Pydantic schemas for CrewNest API."""
 from __future__ import annotations
 
-import enum
 from datetime import date, datetime
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from .models import BillingUnit, BookingStatus, PackageStatus, PackageType, Role
 
@@ -132,10 +131,27 @@ class BookingCreateIn(BaseModel):
     @classmethod
     def validate_time(cls, v: str) -> str:
         try:
-            _, _ = (int(p) for p in v.split(":"))
+            parts = v.split(":")
+            if len(parts) != 2:
+                raise ValueError
+            hour, minute = (int(p) for p in parts)
         except (ValueError, AttributeError):
             raise ValueError("booking_time must be HH:MM")
-        return v
+        if not (0 <= hour <= 23 and 0 <= minute <= 59):
+            raise ValueError("booking_time must be a valid 24-hour time")
+        return f"{hour:02d}:{minute:02d}"
+
+    @model_validator(mode="after")
+    def validate_booking_target_and_terms(self):
+        has_provider = self.provider_id is not None
+        has_package = self.package_id is not None
+        if has_provider == has_package:
+            raise ValueError("Specify exactly one provider or package to book")
+        if self.booking_date < date.today():
+            raise ValueError("booking_date cannot be in the past")
+        if has_package and self.billing_unit != BillingUnit.hourly:
+            raise ValueError("Package bookings use hourly billing")
+        return self
 
 
 class BookingStatusUpdateIn(BaseModel):
