@@ -10,7 +10,7 @@ import os
 import secrets
 from pathlib import Path
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -18,6 +18,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 class Settings(BaseSettings):
     """Central, environment-driven settings for CrewNest."""
+
+    model_config = SettingsConfigDict(
+        env_file=str(BASE_DIR / ".env"),
+        extra="ignore",
+    )
 
     # --- Database ---
     # Leave empty to use the local SQLite demo database.
@@ -33,7 +38,9 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
 
     # --- Server ---
-    host: str = "127.0.0.1"
+    # 0.0.0.0 works both locally and on hosted platforms that expose the app
+    # through a container/service network. PORT/HOST can still override this.
+    host: str = "0.0.0.0"
     port: int = 8001
     allowed_origins: str = "http://localhost:8001,http://127.0.0.1:8001"
 
@@ -41,10 +48,6 @@ class Settings(BaseSettings):
     upload_dir: str = "./uploads"
 
     _generated_secret: str | None = None
-
-    class Config:
-        env_file = str(BASE_DIR / ".env")
-        extra = "ignore"
 
     @property
     def effective_secret_key(self) -> str:
