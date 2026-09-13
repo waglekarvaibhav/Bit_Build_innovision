@@ -36,13 +36,13 @@ const AppShell = {
 
     const mobileLinks = me.role === "provider" ? [
       { key: "home", label: "Home", icon: "home", href: "/provider-home" },
-      { key: "quickhire", label: "Hire", icon: "book", href: "/quickhire" },
+      { key: "quickhire", label: "Quick Hire", icon: "book", href: "/quickhire" },
       { key: "prebook", label: "Pre-book", icon: "calendar", href: "/prebook" },
       { key: "requests", label: "Requests", icon: "inbox", href: "/provider-requests" },
       { key: "profile", label: "Profile", icon: "user", href: "/provider-profile" },
     ] : [
       { key: "home", label: "Home", icon: "home", href: "/home" },
-      { key: "quickhire", label: "Hire", icon: "book", href: "/quickhire" },
+      { key: "quickhire", label: "Quick Hire", icon: "book", href: "/quickhire" },
       { key: "prebook", label: "Pre-book", icon: "calendar", href: "/prebook" },
       { key: "activity", label: "Activity", icon: "clock", href: "/activity" },
       { key: "profile", label: "Profile", icon: "user", href: "/profile" },

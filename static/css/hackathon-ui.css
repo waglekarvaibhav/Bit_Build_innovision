@@ -1083,7 +1083,8 @@ textarea.input:focus {
   .mi-cat { min-height: 140px; }
   .mi-providers, .mi-pkgs-mult, .mi-pkgs-team { grid-template-columns: 1fr; }
   .mobile-nav { height: 70px; padding: 7px 8px; border-top: 1px solid rgba(23,60,52,.11); background: rgba(255,253,248,.95); box-shadow: 0 -12px 35px rgba(23,60,52,.08); backdrop-filter: blur(15px); }
-  .mobile-nav a { color: #7e8984; border-radius: 10px; }
+  .mobile-nav a { flex: 1; min-width: 0; padding-left: 4px; padding-right: 4px; color: #7e8984; border-radius: 10px; }
+  .mobile-nav a span { white-space: nowrap; }
   .mobile-nav a.active { color: #fff; background: var(--cn-forest); }
   .mi-login { flex-direction: column; }
   .mi-login-brand { flex: none; min-height: 360px; padding: 22px 20px 30px; background-position: 62% center; }
