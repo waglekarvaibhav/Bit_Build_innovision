@@ -16,9 +16,10 @@ const API = {
     // started serving the app, so mobile pages should never sit on skeletons
     // for a minute waiting on one API call.
     const retryable = method === "GET" && opts.retry !== false;
-    const retryDelays = opts.retryDelays || [700, 1500];
+    const retryDelays = opts.retryDelays || [400];
     const retryStatuses = new Set([502, 503, 504]);
-    const timeoutMs = opts.timeoutMs || 7000;
+    // Keep the existing write timeout; only read requests fail fast on mobile.
+    const timeoutMs = opts.timeoutMs || (method === "GET" ? 4500 : 7000);
     let res = null;
 
     for (let attempt = 0; attempt <= retryDelays.length; attempt += 1) {

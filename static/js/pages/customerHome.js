@@ -8,9 +8,9 @@ const CustomerHome = {
     // Do not block the whole mobile home screen on one slow catalogue request.
     // Each section can render independently with an empty fallback.
     const [catsResult, providersResult, packagesResult] = await Promise.allSettled([
-      API.get("/api/service-categories"),
-      API.get("/api/providers"),
-      API.get("/api/packages"),
+      API.get("/api/service-categories", { retry: false }),
+      API.get("/api/providers", { retry: false }),
+      API.get("/api/packages", { retry: false }),
     ]);
     const data = {
       cats: catsResult.status === "fulfilled" && Array.isArray(catsResult.value) ? catsResult.value : [],

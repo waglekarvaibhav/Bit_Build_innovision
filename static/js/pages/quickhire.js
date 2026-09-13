@@ -34,13 +34,13 @@ const PreBook = {
 
     // Providers begin loading in parallel, but Step 1 no longer waits for them.
     // This keeps Pre-book usable on slower mobile connections.
-    this._providersPromise = API.get("/api/providers", { timeoutMs: 7000 })
+    this._providersPromise = API.get("/api/providers", { retry: false, timeoutMs: 4500 })
       .then(p => Array.isArray(p) ? p.filter(x => x.available && x.user_id !== me.id) : [])
       .catch(() => []);
 
     let cats = [];
     try {
-      const c = await API.get("/api/service-categories", { timeoutMs: 7000 });
+      const c = await API.get("/api/service-categories", { timeoutMs: 4500 });
       cats = Array.isArray(c) ? c : [];
     } catch (e) {
       showFatal(e, el);
@@ -61,20 +61,23 @@ const PreBook = {
       </div>
     `;
     const sel = document.getElementById("svc-grid");
-    sel.querySelectorAll(".svc-option").forEach(b => b.addEventListener("click", async () => {
+    sel.querySelectorAll(".svc-option").forEach(b => b.addEventListener("click", () => {
       this.state.serviceId = Number(b.dataset.id);
       this._svcName = b.dataset.name;
-      const providers = this._providersPromise ? await this._providersPromise : [];
-      this.stepSelect(providers);
+      this.stepSelect(this._providersPromise);
     }));
   },
 
-  async stepSelect(providers) {
+  async stepSelect(providersPromise) {
     const shell = document.getElementById("content");
     const svcId = this.state.serviceId;
     const svcName = this._svcName || "";
-    let packages = [];
-    try { packages = (await API.get("/api/packages", { retry: false, timeoutMs: 5000 })) || []; } catch (e) {}
+    const [providers, packages] = await Promise.all([
+      providersPromise || Promise.resolve([]),
+      API.get("/api/packages", { retry: false, timeoutMs: 4000 })
+        .then(p => Array.isArray(p) ? p : [])
+        .catch(() => []),
+    ]);
     const myId = Auth.user().id;
     const matchingPkgs = packages.filter(p =>
       (p.services || []).includes(svcName) &&
