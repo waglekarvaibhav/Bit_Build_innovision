@@ -8,7 +8,12 @@ env/
 
 # Environment / secrets
 .env
+.env.local
+.env.*.local
 !*.example
+
+# Neon local project metadata
+.neon/
 
 # Database files
 *.db

@@ -4,10 +4,14 @@ Creates 2 customers, 6 providers, 5 service categories, examples of both package
 types, plus a few bookings and reviews so the dashboards and shortlist have real
 data to show. All contact placeholders are safe (9990000000-series numbers).
 
-Refuses to run against a non-development (non-SQLite) database and aborts if the
-db already contains seed users, so it cannot clobber real or external data.
-Run:  python -m backend.seed_demo
-Force re-seed on a wiped db:  python -m backend.reset_db --yes  &&  python -m backend.seed_demo
+By default this only seeds SQLite. To intentionally seed a connected external
+PostgreSQL/Neon database, pass --allow-external. External seeding is still
+refused if demo users already exist or if catalogue/package data is already
+present. Existing normal users and provider profiles are preserved, allowing a
+fresh marketplace catalogue to be added around accounts created during testing.
+
+Local run:  python -m backend.seed_demo
+Neon run:  python -m backend.seed_demo --allow-external
 """
 from __future__ import annotations
 
@@ -34,8 +38,13 @@ def main() -> None:
     load_dotenv_manual()
 
     url = settings.sqlalchemy_database_url
-    if not url.startswith("sqlite"):
-        print("Refusing to seed: a development SQLite database is required.")
+    is_sqlite = url.startswith("sqlite")
+    allow_external = "--allow-external" in sys.argv
+
+    if not is_sqlite and not allow_external:
+        print("Refusing to seed an external database without --allow-external.")
+        print("For the intentionally connected Neon demo DB, run:")
+        print("  python -m backend.seed_demo --allow-external")
         sys.exit(1)
 
     from .database import Base, SessionLocal, engine
@@ -64,8 +73,25 @@ def main() -> None:
 
     try:
         if db.query(User).filter(User.email.like("%@crewneat.demo")).first():
-            print("Demo data already present. Refusing to re-seed without a reset.")
+            print("Demo data already present. Refusing to seed again.")
             return
+
+        if not is_sqlite:
+            # Existing ordinary users/provider profiles are safe to keep. Block
+            # only if catalogue/package records already exist, because those
+            # have unique names/relationships that this seed owns.
+            existing_seed_owned_data = any(
+                (
+                    db.query(ServiceCategory).first(),
+                    db.query(Service).first(),
+                    db.query(Package).first(),
+                )
+            )
+            if existing_seed_owned_data:
+                print("Refusing to seed Neon: catalogue or package data already exists.")
+                print("No data was changed.")
+                return
+            print("External database confirmed. Preserving existing users/providers and adding demo marketplace data...")
 
         # ---- Service categories & services ----
         cat_specs = [
