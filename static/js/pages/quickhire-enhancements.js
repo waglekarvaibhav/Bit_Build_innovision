@@ -19,7 +19,22 @@
     this._svcName = "";
     this._rate = null;
     this._pkg = null;
-    return originalRender.call(this);
+
+    await originalRender.call(this);
+
+    // A copied/manual ?package= URL must not make a draft or archived offer
+    // appear bookable just because the package detail endpoint can read it.
+    if (this.state.packageId && this._pkg && this._pkg.status !== "published") {
+      const shell = document.getElementById("content");
+      if (shell) {
+        shell.innerHTML = `
+          <div class="state-box">
+            <div class="big">🔒</div>
+            <p>This package is not currently available for new bookings.</p>
+            <a class="btn sm mt-1" href="/packages">Browse available packages</a>
+          </div>`;
+      }
+    }
   };
 
   QuickHire.stepService = function (services, providers, el) {
