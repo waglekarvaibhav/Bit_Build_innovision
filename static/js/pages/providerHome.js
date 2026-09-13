@@ -18,7 +18,14 @@ const ProviderHome = {
     } catch (e) { showFatal(e, el); return; }
 
     const available = prof.profile.available;
-    const pending = bookings.filter(b => b.status === "pending");
+    const meId = Number(me.id || me.user_id);
+    const canDecide = b => {
+      if (b.package_type_snapshot === "team") {
+        return Number(b.package_lead_snapshot) === meId;
+      }
+      return Number(b.provider_id) === meId;
+    };
+    const pending = bookings.filter(b => b.status === "pending" && canDecide(b));
     const active = bookings.filter(b => b.status === "accepted");
     const review = bookings.filter(b => b.status === "completion_requested");
     const completed = bookings.filter(b => b.status === "completed");
