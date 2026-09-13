@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from ..config import settings
@@ -84,7 +84,7 @@ async def upload_photo(
     booking_id: int,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-    photo_type: PhotoType = ...,
+    photo_type: PhotoType = Form(...),
     file: UploadFile = File(...),
 ):
     b = db.get(Booking, booking_id)
