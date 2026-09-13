@@ -206,9 +206,16 @@ def customer_bookings(db: Session = Depends(get_db), user: User = Depends(requir
 
 @router.get("/providers/bookings")
 def provider_bookings(db: Session = Depends(get_db), user: User = Depends(require_role(Role.provider))):
-    ids = {user.id}
-    ids.update(b.booking_id for b in db.query(BookingParticipant).filter(BookingParticipant.user_id == user.id))
-    rows = db.query(Booking).filter(Booking.id.in_(ids)).order_by(Booking.created_at.desc()).all()
+    participant_ids = {
+        row.booking_id
+        for row in db.query(BookingParticipant).filter(BookingParticipant.user_id == user.id).all()
+    }
+    rows = (
+        db.query(Booking)
+        .filter((Booking.provider_id == user.id) | (Booking.id.in_(participant_ids)))
+        .order_by(Booking.created_at.desc())
+        .all()
+    )
     return {"bookings": [_serialize_booking(db, b) for b in rows]}
 
 
