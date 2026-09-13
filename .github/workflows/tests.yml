@@ -8,7 +8,7 @@ on:
   pull_request:
 
 jobs:
-  pytest:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -24,7 +24,14 @@ jobs:
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
 
+      - name: Check Python syntax
+        run: python -m compileall -q backend tests
+
+      - name: Check browser JavaScript syntax
+        run: find static/js -name '*.js' -print0 | xargs -0 -n1 node --check
+
       - name: Run test suite
         env:
           SECRET_KEY: ci-test-secret-not-for-production
-        run: pytest -q
+          PYTHONPATH: ${{ github.workspace }}
+        run: python -m pytest -q
