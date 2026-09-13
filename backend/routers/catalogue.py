@@ -158,9 +158,15 @@ def list_providers(
     return rows[offset : offset + limit]
 
 
-@router.get("/providers/{profile_id}")
-def get_provider(profile_id: int, db: Session = Depends(get_db)):
-    prof = db.get(ProviderProfile, profile_id)
+@router.get("/providers/{provider_id}")
+def get_provider(provider_id: int, db: Session = Depends(get_db)):
+    # Public links use User.id (the same provider_id used by bookings/reviews).
+    # ProviderProfile.id is an internal row id and is not guaranteed to match it.
+    prof = (
+        db.query(ProviderProfile)
+        .filter(ProviderProfile.user_id == provider_id)
+        .first()
+    )
     if prof is None:
         raise HTTPException(status_code=404, detail="Provider not found")
     return _public_provider(db, prof)
@@ -176,7 +182,9 @@ def list_packages(
 ):
     q = db.query(Package)
     if not include_archived:
-        q = q.filter(Package.status != PackageStatus.archived)
+        # Public/customer discovery must only expose packages that can actually
+        # be booked. Drafts remain available through provider-management APIs.
+        q = q.filter(Package.status == PackageStatus.published)
     if package_type is not None:
         q = q.filter(Package.package_type == package_type)
     if locality:
