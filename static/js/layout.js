@@ -33,13 +33,14 @@ const AppShell = {
       { key: "profile", label: "Profile", icon: "user", href: "/provider-profile" },
     ] : [
       { key: "home", label: "Home", icon: "home", href: "/home" },
+      { key: "quickhire", label: "Quick Hire", icon: "book", href: "/quickhire" },
       { key: "activity", label: "Activity", icon: "calendar", href: "/activity" },
       { key: "packages", label: "Packages", icon: "box", href: "/packages" },
       { key: "profile", label: "Profile", icon: "user", href: "/profile" },
     ];
 
     const mobileNav = mobileLinks.map(l =>
-      `<a href="${l.href}" class="${l.key === activeKey || (activeKey === 'quickhire' && l.key === 'activity') ? "active" : ""}">${icon(l.icon)}<span>${l.label}</span></a>`
+      `<a href="${l.href}" class="${l.key === activeKey ? "active" : ""}">${icon(l.icon)}<span>${l.label}</span></a>`
     ).join("");
 
     if (me.role === "provider") {
