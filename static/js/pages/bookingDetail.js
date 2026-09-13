@@ -23,6 +23,7 @@ const BookingDetail = {
     const isCustomer = b.customer_id === me.id;
     const isLead = me.role === "provider" && this._isLeadBooking(b, me.id);
     const isMember = me.role === "provider" && !isLead && this._isMember(b, me.id);
+    page.head.innerHTML = `<a class="small" href="${isCustomer ? "/activity" : "/provider-jobs"}">← ${isCustomer ? "My Bookings" : "My Jobs"}</a>`;
 
     // Determine allowed actions based on status + role.
     let contact = null;
@@ -34,6 +35,8 @@ const BookingDetail = {
       ? b.package_members_snapshot : [];
 
     const typeLabel = b.package_type_snapshot || "Individual";
+    let photos = [];
+    try { photos = (await API.get(`/api/bookings/${params.id}/photos`)) || []; } catch (e) {}
 
     el.innerHTML = `
       <div class="card">
@@ -74,11 +77,13 @@ const BookingDetail = {
           </ul>` : ""}
       </div>
 
+      ${bookingTimelineHtml(b.status)}
+
       ${this._actionsCard(b, isCustomer, isLead, isMember, me, el)}
 
       ${isCustomer && contact ? this._contactCard(contact, b) : ""}
 
-      ${this._photosCard(b, isCustomer || isLead || isMember, params.id, b.status)}
+      ${this._photosCard(photos, isCustomer || isLead || isMember, params.id, b.status)}
     `;
     this._wireActions(b, isCustomer, isLead, isMember, params.id, el);
   },
@@ -111,7 +116,7 @@ const BookingDetail = {
       ? `<p class="small muted">You're a crew member on this team booking. The team lead manages requests and completion.</p>` : "";
 
     if (!actions.length) {
-      return `<div class="card slim mt-1">${nonLeadNote}<p class="small muted">No actions available for this booking right now.</p>${me.role==="customer" && status==="completed" ? `<button class="btn sm amber" id="review-btn" data-bid="${b.id}">Leave a review</button>` : ""}</div>`;
+      return `<div class="card slim mt-1">${nonLeadNote}<p class="small muted">No actions available for this booking right now.</p>${isCustomer && status==="completed" ? `<button class="btn sm amber" id="review-btn" data-bid="${b.id}">Leave a review</button>` : ""}</div>`;
     }
     return `
       <div class="card slim mt-1">
@@ -139,10 +144,8 @@ const BookingDetail = {
       </div>`;
   },
 
-  async _photosCard(b, allowed, bid, status) {
+  _photosCard(photos, allowed, bid, status) {
     if (!allowed) return "";
-    let photos = [];
-    try { photos = (await API.get(`/api/bookings/${bid}/photos`)) || []; } catch (e) {}
     const before = photos.filter(p => p.photo_type === "before");
     const after = photos.filter(p => p.photo_type === "after");
     const canUpload = status === "completion_requested" || status === "accepted" || status === "completed";

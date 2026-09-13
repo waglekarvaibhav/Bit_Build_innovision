@@ -1,9 +1,11 @@
-// CrewNest Atlas provider work — compact progress lanes.
+// Provider jobs (/provider-jobs) — ongoing & completed work across bookings,
+// including team packages where the provider is a member.
 const ProviderJobs = {
   async render() {
     if (!requireRole("provider")) return;
-    mountShell("jobs");
-    const page = AppShell.page("");
+    const shell = mountShell("jobs");
+    const head = `<h1>My Jobs</h1><p>Everything you're assigned to, including team bookings.</p>`;
+    const page = AppShell.page(head);
     const el = page.el;
     el.innerHTML = `<div class="skeleton"></div>`;
 
@@ -11,53 +13,29 @@ const ProviderJobs = {
     try { rows = (await API.get("/api/providers/bookings")).bookings; }
     catch (e) { showFatal(e, el); return; }
 
-    const me = Auth.user();
-    const meId = Number(me.id || me.user_id);
-    const canDecide = b => {
-      if (b.package_type_snapshot === "team") {
-        return Number(b.package_lead_snapshot) === meId;
-      }
-      return Number(b.provider_id) === meId;
-    };
-    const pending = rows.filter(b => b.status === "pending" && canDecide(b));
-    const active = rows.filter(b => b.status === "accepted");
-    const review = rows.filter(b => b.status === "completion_requested");
+    const myId = Auth.get().user_id;
+    const ongoing = rows.filter(b => ["accepted", "completion_requested"].includes(b.status));
     const completed = rows.filter(b => b.status === "completed");
-    const closed = rows.filter(b => ["rejected","cancelled"].includes(b.status));
+    const other = rows.filter(b => !["accepted", "completion_requested", "completed"].includes(b.status));
+
+    const jobCard = (b, isMember) => `
+      <a class="list-item" href="/provider-booking/${b.id}" style="text-decoration:none;color:inherit">
+        <div class="grow">
+          <div class="between"><strong>${esc(b.item_description)}</strong> ${statusBadge(b.status)}</div>
+          <div class="meta">${fmtDate(b.booking_date)} at ${esc(b.booking_time)} · ${esc(b.customer_name)}</div>
+          ${b.package_type_snapshot ? `<div class="meta"><span class="chip-inline">${esc(b.package_type_snapshot)}</span><span class="xsmall muted">${b.package_lead_name ? "Lead: " + esc(b.package_lead_name) : ""}</span></div>` : ""}
+          <div class="xsmall muted">${b.quoted_price ? "Quote " + money(b.quoted_price) : ""}</div>
+        </div>
+        <span class="btn sm ghost">Open</span>
+      </a>`;
 
     el.innerHTML = `
-      <header class="atlas-pagehead">
-        <div><div class="atlas-kicker">Work rail</div><h1>Work</h1><p>Track jobs from acceptance through customer review and completion.</p></div>
-        <div class="atlas-actions"><span class="atlas-status ${active.length + review.length ? "live" : ""}">${active.length + review.length} live</span><span class="atlas-tag mint">${completed.length} done</span></div>
-      </header>
-
-      <section class="atlas-progress-rail">
-        ${this._step("Requests",pending.length)}
-        ${this._step("Accepted",active.length)}
-        ${this._step("Review",review.length)}
-        ${this._step("Done",completed.length)}
-      </section>
-
-      <section class="atlas-job-lanes">
-        ${this._lane("In progress","Accepted jobs currently being delivered.",active,"blue")}
-        ${this._lane("Customer review","Completion requested; waiting for confirmation.",review,"amber")}
-        ${this._lane("Completed","Finished work kept in your history.",completed,"mint")}
-      </section>
-
-      ${closed.length ? `<section class="atlas-card atlas-history" style="margin-top:12px;min-height:auto"><div class="atlas-card-head"><div><h2>Closed without completion</h2><p>Rejected or cancelled bookings.</p></div><span class="atlas-count">${closed.length}</span></div><div class="atlas-history-list">${closed.map(b => this._closed(b)).join("")}</div></section>` : ""}
+      <h3>Ongoing (${ongoing.length})</h3>
+      <div>${ongoing.map(b => jobCard(b)).join("") || `<div class="state-box"><div class="big">✅</div><p>No ongoing jobs.</p></div>`}</div>
+      <h3 style="margin-top:var(--space-6)">Completed (${completed.length})</h3>
+      <div>${completed.map(b => jobCard(b)).join("") || `<div class="state-box"><p>No completed jobs yet.</p></div>`}</div>
+      <h3 style="margin-top:var(--space-6)">Other (${other.length})</h3>
+      <div>${other.map(b => jobCard(b)).join("") || `<div class="state-box"><p>Nothing else.</p></div>`}</div>
     `;
   },
-
-  _step(label,count){return `<article class="atlas-card atlas-progress-step"><small>${label}</small><strong>${count}</strong></article>`;},
-
-  _lane(title,sub,rows,tone){
-    return `<article class="atlas-card atlas-job-lane"><div class="atlas-card-head"><div><h2>${title}</h2><p>${sub}</p></div><span class="atlas-count">${rows.length}</span></div>${rows.length ? rows.map(b=>this._job(b,tone)).join("") : `<div class="atlas-empty"><div><strong>Nothing here</strong><span>${title === "In progress" ? "Accepted jobs will appear here." : title === "Customer review" ? "Completion requests will appear here." : "Completed jobs will appear here."}</span></div></div>`}</article>`;
-  },
-
-  _job(b,tone){
-    const type=b.package_type_snapshot ? `${b.package_type_snapshot}${b.package_name_snapshot ? " · "+b.package_name_snapshot : ""}` : "Individual";
-    return `<a class="atlas-job-card" href="/provider-booking/${b.id}"><strong>${esc(b.item_description)}</strong><small>${esc(b.customer_name)} · ${fmtDate(b.booking_date)} · ${esc(b.booking_time)}</small><div class="atlas-tags"><span class="atlas-tag ${tone}">${STATUS_LABEL[b.status] || esc(b.status)}</span><span class="atlas-tag">${esc(type)}</span></div><div class="atlas-job-foot"><b>${money(b.quoted_price)}</b><span>OPEN →</span></div></a>`;
-  },
-
-  _closed(b){return `<a class="atlas-history-row" href="/provider-booking/${b.id}"><div><strong>${esc(b.item_description)}</strong><span>${esc(b.customer_name)} · ${STATUS_LABEL[b.status] || esc(b.status)}</span></div><b>${money(b.quoted_price)}</b></a>`;}
 };

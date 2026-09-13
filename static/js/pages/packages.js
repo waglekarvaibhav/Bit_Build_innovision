@@ -11,7 +11,7 @@ const PackagesPage = {
     let packages;
     try { packages = (await API.get("/api/packages")) || []; }
     catch (e) { showFatal(e, el); return; }
-    const active = packages.filter(p => p.status === "published");
+    const active = packages.filter(p => p.status !== "archived");
     if (!active.length) {
       el.innerHTML = `<div class="state-box"><div class="big">📦</div><p>No packages are available right now.</p></div>`;
       return;
@@ -31,9 +31,7 @@ const PackagesPage = {
         <div class="chips-row">${p.services.slice(0, 4).map(s => `<span class="chip-inline">${esc(s)}</span>`).join("")}</div>
         <div class="between mt-2">
           <span class="price">${money(p.hourly_rate)}<small>/hr</small></span>
-          ${p.package_type === "team"
-            ? `<span class="xsmall muted">${p.member_count}-person crew</span>`
-            : `<span class="xsmall muted">1 provider</span>`}
+          ${team.length ? `<span class="xsmall muted">${p.member_count}-person crew</span>` : `<span class="xsmall muted">1 provider</span>`}
         </div>
       </a>`;
 
@@ -57,8 +55,8 @@ const PackageDetail = {
       el.innerHTML = `<div class="state-box"><div class="big">📦</div><p>${esc(e.message)}</p><a class="btn sm mt-1" href="/packages">Browse packages</a></div>`;
       return;
     }
-    if (p.status !== "published") {
-      el.innerHTML = `<div class="state-box"><div class="big">🔒</div><p>This package is not currently available for new bookings.</p><a class="btn sm mt-1" href="/packages">Browse packages</a></div>`;
+    if (p.status === "archived") {
+      el.innerHTML = `<div class="state-box"><div class="big">🔒</div><p>This package is no longer available for new bookings.</p><a class="btn sm mt-1" href="/packages">Browse packages</a></div>`;
       return;
     }
 
@@ -88,7 +86,7 @@ const PackageDetail = {
       </div>
     `;
     el.querySelector("#book-pkg").addEventListener("click", () => {
-      location.href = "/quickhire?package=" + params.id;
+      location.href = "/prebook?package=" + params.id;
     });
   },
 };

@@ -62,7 +62,7 @@ const GoalGuide = {
           <p class="xsmall muted">Suggestions come from the live catalogue. Package hourly rate is the whole-package rate.</p>
           <div class="grid">${pkgs.map(p => this.card(p, selected)).join("")}</div>`;
         out.querySelectorAll(".book-pkg").forEach(b => b.addEventListener("click", () => {
-          location.href = "/quickhire?package=" + b.dataset.id;
+          location.href = "/prebook?package=" + b.dataset.id;
         }));
       } catch (err) { out.innerHTML = `<div class="state-box">${esc(err.message)}</div>`; }
     });

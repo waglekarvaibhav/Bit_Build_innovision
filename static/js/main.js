@@ -1,25 +1,16 @@
-// CrewNest application entry. Registers routes and starts the router.
+// JobHustle application entry. Registers routes and starts the router.
 // All page modules are global constants loaded via script tags.
 
-// Root: resolve the first screen in-place instead of triggering a second full
-// document load. This removes the visible "Loading…" -> redirect -> reload
-// cycle when CrewNest is opened at "/".
-route("/", async () => {
-  if (!Auth.isAuthenticated()) {
-    history.replaceState({}, "", "/login");
-    await AuthPage.login();
-    return;
+// Root: route unauthenticated visitors to the login screen and authenticated
+// users to their role home. Without a route for "/", dispatchRoute() falls
+// through to renderNotFound(), which silently no-ops before the shell exists
+// and leaves the "Loading…" spinner in place forever.
+route("/", () => {
+  if (Auth.isAuthenticated()) {
+    location.href = roleHome(Auth.role());
+  } else {
+    location.replace("/login");
   }
-
-  const role = Auth.role();
-  if (role === "provider") {
-    history.replaceState({}, "", "/provider-home");
-    await ProviderHome.render();
-    return;
-  }
-
-  history.replaceState({}, "", "/home");
-  await CustomerHome.render();
 });
 
 // Authentication
@@ -31,6 +22,7 @@ route("/home", () => CustomerHome.render());
 route("/find", () => FindPage.render());
 route("/provider/:id", (p) => ProviderPublic.render(p));
 route("/quickhire", () => QuickHire.render());
+route("/prebook", () => PreBook.render());
 route("/booking/:id", (p) => BookingDetail.render(p));
 route("/activity", () => CustomerActivity.render());
 route("/packages", () => PackagesPage.render());
@@ -46,7 +38,7 @@ route("/provider-booking/:id", (p) => ProviderBookingDetail.render(p));
 route("/provider-packages", () => ProviderPackages.render());
 route("/provider-profile", () => ProviderProfilePage.render());
 
-// Start as soon as this bottom-of-body script executes. At this point the DOM
-// and all page modules above are already available, so waiting for another
-// DOMContentLoaded callback only prolongs the bootstrap placeholder.
-dispatchRoute();
+// Start
+window.addEventListener("DOMContentLoaded", () => {
+  dispatchRoute();
+});

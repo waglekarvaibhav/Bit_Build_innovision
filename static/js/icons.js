@@ -1,4 +1,4 @@
-// CrewNest icon helper — a small inline SVG icon set.
+// JobHustle icon helper — a small inline SVG icon set.
 // Each name maps to a 24x24 stroke icon with accessible label via aria-hidden
 // (decorative) or title (meaningful where needed).
 const ICONS = {

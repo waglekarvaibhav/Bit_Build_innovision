@@ -7,34 +7,39 @@ const AuthPage = {
         <div class="mi-login-brand">
           <div class="mi-brand-lock">
             <div class="mi-brand-mark">
-              <span class="mi-brand-logo" aria-hidden="true">CN</span>
-              <span class="mi-brand-word">CrewNest<small>local services marketplace</small></span>
+              <span class="mi-brand-logo" aria-hidden="true"><span>JH</span></span>
+              <span class="mi-brand-word">JobHustle<small>LOCAL SERVICES, COORDINATED</small></span>
             </div>
-            <h1 class="mi-brand-headline">Good help.<br>Close to home.</h1>
-            <p class="mi-brand-sub">Book a trusted local professional for cleaning, repairs, packing, wiring and more — from one handy service.</p>
+            <div class="mi-login-live"><span></span> Now serving homes across Goa</div>
+            <h1 class="mi-brand-headline">Good work starts with<br><em>the right people.</em></h1>
+            <p class="mi-brand-sub">Book a trusted local professional—or bring together a complete crew—for every repair, refresh and move.</p>
+            <div class="mi-brand-metrics"><span><b>13</b> services</span><span><b>06</b> local professionals</span><span><b>02</b> ways to hire</span></div>
           </div>
           <div class="mi-brand-illus" aria-hidden="true">
-            ${icon("homeInt")}
+            <div class="login-image-card"><img src="/assets/crewnest-hero.png" alt="" /></div>
           </div>
-          <div class="mi-brand-foot">CrewNest · serving Goa's homes &amp; teams</div>
+          <div class="mi-brand-foot"><span>Made for Goa</span><span>Real people · Real skills · Real work</span></div>
         </div>
 
         <div class="mi-login-form">
           <div class="mi-login-card">
             <h2>Welcome back</h2>
-            <p class="mi-lede">Sign in to manage bookings, jobs, and packages.</p>
+            <p class="mi-lede">Your bookings, jobs and teams are waiting.</p>
             <form id="login-form" novalidate>
               <div class="field"><label for="l-email">Email</label>
                 <input class="input" type="email" id="l-email" autocomplete="email" required placeholder="you@example.com" /></div>
               <div class="field"><label for="l-pass">Password</label>
                 <input class="input" type="password" id="l-pass" autocomplete="current-password" required /></div>
-              <button class="mi-login-submit" type="submit">Sign in</button>
+              <button class="mi-login-submit" type="submit">Sign in to JobHustle <span>↗</span></button>
             </form>
             <p class="mi-login-switch">New here? <a href="/register">Create an account</a></p>
             <div class="mi-login-demo">
-              <strong>Demo accounts</strong>
-              Password: <span class="mono">DemoPass123!</span><br />
-              Customer: <span class="mono">aarav@crewneat.demo</span> · Provider: <span class="mono">priya@crewneat.demo</span>
+              <strong>Explore the live demo</strong>
+              <p>Choose a side of the marketplace—no typing required.</p>
+              <div class="mi-demo-actions">
+                <button type="button" data-demo="customer">Explore as customer <span>→</span></button>
+                <button type="button" data-demo="provider">Run provider ops <span>→</span></button>
+              </div>
             </div>
           </div>
         </div>
@@ -61,6 +66,15 @@ const AuthPage = {
         btn.disabled = false;
       }
     });
+    document.querySelectorAll("[data-demo]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.getElementById("l-email").value = button.dataset.demo === "customer"
+          ? "aarav@crewneat.demo"
+          : "priya@crewneat.demo";
+        document.getElementById("l-pass").value = "DemoPass123!";
+        document.getElementById("login-form").requestSubmit();
+      });
+    });
   },
 
   register() {
@@ -79,8 +93,8 @@ const AuthPage = {
       <div class="auth-wrap">
         <div class="auth-card card">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:var(--space-4)">
-            <span class="logo" style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#0f766e,#d97706);display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.2rem">CN</span>
-            <span><strong style="font-size:1.35rem">CrewNest</strong></span>
+            <span class="logo" style="width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#0f766e,#d97706);display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.2rem">JH</span>
+            <span><strong style="font-size:1.35rem">JobHustle</strong></span>
           </div>
           <h2>Create your account</h2>
           <div class="chips-row" style="margin-bottom:var(--space-4)">

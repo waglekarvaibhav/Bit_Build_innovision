@@ -1,10 +1,10 @@
-// Customer activity (/activity) — bookings list and status history.
+// Outgoing bookings (/activity) for customers and providers booking help.
 const CustomerActivity = {
   async render() {
-    if (!requireRole("customer")) return;
+    if (!requireRole("customer", "provider")) return;
     const me = Auth.user();
     const shell = mountShell("activity");
-    const head = `<h1>My Activity</h1><p>All your requests and bookings, across individual, multitasking and team packages.</p>`;
+    const head = `<h1>${me.role === "provider" ? "My Bookings" : "My Activity"}</h1><p>Services you have requested from other JobHustle professionals.</p>`;
     const page = AppShell.page(head);
     const el = page.el;
     el.innerHTML = `<div class="skeleton"></div>`;
@@ -14,7 +14,7 @@ const CustomerActivity = {
     catch (e) { showFatal(e, el); return; }
 
     if (!rows.length) {
-      el.innerHTML = `<div class="state-box"><div class="big">🗂️</div><p>No bookings yet.</p><a class="btn mt-1" href="/home">Book your first professional</a></div>`;
+      el.innerHTML = `<div class="state-box"><div class="big">🗂️</div><p>No outgoing bookings yet.</p><div class="row mt-1" style="justify-content:center"><a class="btn" href="/quickhire">Quick Hire</a><a class="btn ghost" href="/prebook">Pre-book</a></div></div>`;
       return;
     }
 

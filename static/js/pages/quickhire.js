@@ -1,14 +1,15 @@
-// Quick Hire (/quickhire) — guided multi-step booking:
+// Pre-book (/prebook) — deliberate multi-step scheduled booking:
 // 1) choose service → 2) select professional or relevant package →
 // 3) enter job details & schedule → 4) review & submit.
 // Form input is preserved on recoverable errors.
-const QuickHire = {
+const PreBook = {
   state: { serviceId: null, providerId: null, packageId: null, billingUnit: "hourly" },
 
   async render() {
-    if (!requireRole("customer")) return;
-    const shell = mountShell("home");
-    const head = `<a class="small" href="/home">← Home</a>`;
+    if (!requireRole("customer", "provider")) return;
+    const me = Auth.user();
+    const shell = mountShell("prebook");
+    const head = `<a class="small" href="${roleHome(me.role)}">← Home</a><div><span class="page-kicker"><span></span> Plan ahead</span><h1>Pre-book a service</h1><p>Choose exactly who comes, when they arrive, and the service format you need.</p></div>`;
     const page = AppShell.page(head);
     const el = page.el;
 
@@ -22,6 +23,7 @@ const QuickHire = {
       try {
         const pkg = await API.get(`/api/packages/${this.state.packageId}`);
         if (!pkg.services[0]) throw new Error("This package has no service to preselect.");
+        if (this._packageIncludesMe(pkg, me.id)) throw new Error("You cannot book a package that you provide or belong to.");
         // pick the package's first service for the item context
         this.state.serviceId = null;
         this.state._pkg = pkg;
@@ -34,7 +36,7 @@ const QuickHire = {
     let cats = [], providers = [];
     try {
       const [c, p] = await Promise.all([API.get("/api/service-categories"), API.get("/api/providers")]);
-      cats = c; providers = p.filter(x => x.available);
+      cats = c; providers = p.filter(x => x.available && x.user_id !== me.id);
     } catch (e) { showFatal(e, el); return; }
 
     const services = cats.flatMap(c => c.services);
@@ -53,6 +55,7 @@ const QuickHire = {
     const sel = document.getElementById("svc-grid");
     sel.querySelectorAll(".svc-option").forEach(b => b.addEventListener("click", () => {
       this.state.serviceId = Number(b.dataset.id);
+      this._svcName = b.dataset.name;
       this.stepSelect(providers);
     }));
   },
@@ -64,7 +67,12 @@ const QuickHire = {
     const svcName = this._svcName || "";
     let packages = [];
     try { packages = (await API.get("/api/packages")) || []; } catch (e) {}
-    const matchingPkgs = packages.filter(p => p.services.includes(svcName) && p.status !== "archived");
+    const myId = Auth.user().id;
+    const matchingPkgs = packages.filter(p =>
+      p.services.includes(svcName) &&
+      p.status !== "archived" &&
+      !this._packageIncludesMe(p, myId)
+    );
 
     shell.innerHTML = `
       <div class="stepper small muted">Step 2 of 4 · Select ${esc(svcName)} provider or package</div>
@@ -74,7 +82,7 @@ const QuickHire = {
       ${matchingPkgs.length ? `<h3 style="margin-top:var(--space-5)">Relevant packages</h3><div id="package-options"></div>` : ""}
       <div id="selected-box" class="card mt-2" style="display:none"></div>
       <div class="between mt-2">
-        <a class="btn ghost sm" href="/quickhire">Back</a>
+        <a class="btn ghost sm" href="/prebook">Back</a>
         <button class="btn sm" id="next-btn" disabled>Continue to details</button>
       </div>
     `;
@@ -159,7 +167,7 @@ const QuickHire = {
           <div class="field"><label for="d-hours">Duration (hours)</label><input class="input" type="number" id="d-hours" min="0.5" step="0.5" value="2" required /></div>
         </div>
         <div class="between mt-2">
-          <a class="btn ghost sm" href="/quickhire">Back</a>
+          <a class="btn ghost sm" href="/prebook">Back</a>
           <button class="btn sm" type="submit">Review & submit</button>
         </div>
       </form>
@@ -318,8 +326,7 @@ const QuickHire = {
       };
       try {
         const booking = await API.post("/api/customers/bookings", payload);
-        Toast.success("Booking request submitted");
-        location.href = "/booking/" + booking.id;
+        this.showSuccess(booking);
       } catch (ex) {
         errEl.textContent = ex.message;
         errEl.style.display = "block";
@@ -330,11 +337,45 @@ const QuickHire = {
     });
   },
 
+  showSuccess(booking) {
+    NotificationCenter.chime();
+    NotificationCenter.refresh(true);
+    const main = document.getElementById("main");
+    const bookedName = booking.package_name_snapshot || booking.provider_name || "your professional";
+    main.innerHTML = `
+      <div class="booking-success" role="status" aria-live="polite">
+        <div class="booking-success-card">
+          <div class="booking-success-check">✓</div>
+          <div class="page-kicker"><span></span> Request #${booking.id} is live</div>
+          <h1>Your request is on its way.</h1>
+          <p>We've notified ${esc(bookedName)}. You'll get an update here as soon as the request is accepted.</p>
+          <div class="booking-success-summary">
+            <span>Scheduled for<strong>${fmtDate(booking.booking_date)} · ${esc(booking.booking_time)}</strong></span>
+            <span>Quoted total<strong>${money(booking.quoted_price)}</strong></span>
+          </div>
+          <div class="booking-success-actions">
+            <a class="btn" href="/booking/${booking.id}">Track request</a>
+            <a class="btn ghost" href="${roleHome(Auth.role())}">Back to home</a>
+          </div>
+          <div class="booking-success-progress" aria-hidden="true"><i></i></div>
+          <p class="xsmall" style="margin:10px 0 0;color:#9fb6ab">Opening live tracking automatically…</p>
+        </div>
+      </div>`;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    this._successTimer = setTimeout(() => {
+      location.href = "/booking/" + booking.id;
+    }, 4000);
+    main.querySelectorAll("a").forEach(link => link.addEventListener("click", () => clearTimeout(this._successTimer)));
+  },
+
   _rateFor(svc, hours) {
     if (!svc) return null;
     return this.state.billingUnit === "hourly" ? svc.hourly_rate
       : this.state.billingUnit === "daily" ? svc.daily_rate
       : svc.monthly_rate;
+  },
+  _packageIncludesMe(pkg, userId) {
+    return pkg.owner_id === userId || (pkg.members || []).some(member => member.user_id === userId);
   },
   _pkgName() { return this.state._pkg ? this.state._pkg.name : null; },
 };

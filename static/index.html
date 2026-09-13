@@ -3,21 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#202227" />
-  <title>CrewNest — local services marketplace</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23202227'/%3E%3Ctext x='50' y='68' font-size='52' font-family='Arial' font-weight='bold' fill='%23ffffff' text-anchor='middle'%3ECN%3C/text%3E%3C/svg%3E" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <meta name="theme-color" content="#080808" />
+  <meta name="description" content="JobHustle is Goa's hyperlocal network for finding professionals, building crews and getting real work done." />
+  <title>JobHustle — Goa's hyperlocal crew network</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a1020'/%3E%3Ctext x='50' y='68' font-size='52' font-family='Arial' font-weight='bold' fill='%23fff' text-anchor='middle'%3ECN%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="/css/tokens.css" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/marketplace-ui.css" />
   <link rel="stylesheet" href="/css/hackathon-ui.css" />
-  <link rel="stylesheet" href="/css/customer-redesign.css" />
-  <link rel="stylesheet" href="/css/customer-reference.css" />
-  <link rel="stylesheet" href="/css/customer-home.css" />
-  <link rel="stylesheet" href="/css/provider-atlas.css" />
+  <style>
+    .crew-boot { min-height:100vh; display:grid; place-items:center; padding:24px; background:#f4f1e9; color:#173c34; font-family:"Avenir Next","Segoe UI",system-ui,sans-serif; }
+    .crew-boot-card { width:min(420px,100%); text-align:center; }
+    .crew-boot-mark { width:58px; height:58px; display:grid; place-items:center; margin:0 auto 18px; border-radius:18px 18px 18px 5px; background:#173c34; color:#fff; font-size:15px; font-weight:800; letter-spacing:-.04em; box-shadow:0 14px 38px rgba(23,60,52,.18); }
+    .crew-boot h1 { margin:0; font-size:23px; letter-spacing:-.04em; }
+    .crew-boot p { margin:7px 0 0; color:#6a746f; font-size:13px; }
+    .crew-boot-line { width:150px; height:3px; margin:22px auto 0; overflow:hidden; border-radius:99px; background:#dce5df; }
+    .crew-boot-line i { display:block; width:48%; height:100%; border-radius:inherit; background:#df6d4f; animation:crew-boot-slide 1.1s ease-in-out infinite alternate; }
+    .crew-boot-error { margin-top:18px; padding:14px; border:1px solid #e3d6cb; border-radius:13px; background:#fffaf5; color:#614f47; font-size:12px; line-height:1.5; }
+    .crew-boot-error a { display:inline-block; margin-top:8px; color:#173c34; font-weight:800; }
+    @keyframes crew-boot-slide { from { transform:translateX(0); } to { transform:translateX(108%); } }
+  </style>
 </head>
 <body>
-  <div id="app"><div class="state-box" style="margin:20vh auto;max-width:420px;"><div class="spinner"></div> Loading…</div></div>
+  <div id="app"><div class="crew-boot" id="crew-boot"><div class="crew-boot-card"><div class="crew-boot-mark">JH</div><h1>Preparing your JobHustle</h1><p>Connecting to your local service network…</p><div class="crew-boot-line"><i></i></div></div></div></div>
+  <script>
+    window.JOBHUSTLE_BOOT_TIMER = setTimeout(function () {
+      var boot = document.getElementById("crew-boot");
+      if (!boot) return;
+      var recommended = location.port ? location.origin : "http://127.0.0.1:8001";
+      boot.querySelector(".crew-boot-card").insertAdjacentHTML("beforeend",
+        '<div class="crew-boot-error"><strong>JobHustle could not start.</strong><br>The app server or its files are not available at this address.<br><a href="' + recommended + '/login">Open the JobHustle server</a></div>');
+      var line = boot.querySelector(".crew-boot-line");
+      if (line) line.remove();
+    }, 6000);
+  </script>
 
   <script src="/js/icons.js"></script>
   <script src="/js/api.js"></script>
@@ -29,7 +48,7 @@
   <script src="/js/pages/providerProfile.js"></script>
   <script src="/js/pages/providerPublic.js"></script>
   <script src="/js/pages/quickhire.js"></script>
-  <script src="/js/pages/quickhire-enhancements.js"></script>
+  <script src="/js/pages/instantHire.js"></script>
   <script src="/js/pages/bookingDetail.js"></script>
   <script src="/js/pages/activity.js"></script>
   <script src="/js/pages/packages.js"></script>

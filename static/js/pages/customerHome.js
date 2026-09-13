@@ -1,47 +1,44 @@
-// Customer home dashboard — premium reference-inspired redesign.
+// Customer home dashboard.
 const CustomerHome = {
   async render() {
     if (!requireRole("customer")) return;
-    const me = Auth.user();
     const shell = mountShell("home");
     shell.innerHTML = `<div class="skeleton"></div>`;
 
     let data;
     try {
-      const [cats, providers, packages, localities] = await Promise.all([
+      const [cats, providers, packages] = await Promise.all([
         API.get("/api/service-categories"),
         API.get("/api/providers"),
         API.get("/api/packages"),
-        API.get("/api/localities").catch(() => ({ localities: [] })),
       ]);
-      data = { cats, providers, packages, localities: localities.localities || [] };
+      // Only show available, rated or not, real providers.
+      data = { cats, providers, packages };
     } catch (e) { showFatal(e, shell); return; }
 
-    const page = AppShell.page("");
+    const head = `
+      <div class="page-kicker"><span></span> Home</div>
+      <h1>Your JobHustle</h1>
+    `;
+    const page = AppShell.page(head);
     const el = page.el;
-    const availableProviders = data.providers.filter(p => p.available);
-    const activePackages = data.packages.filter(p => p.status !== "archived");
-    const firstName = (me.full_name || "there").split(" ")[0];
+    document.querySelector(".app").classList.add("customer-home");
 
-    const catCards = data.cats.slice(0, 6).map(c => {
-      const catIcon = ({
-        "Home & Interior": "homeInt",
-        "Electrical & Repair": "bolt",
-        "Gardening & Outdoor": "leaf",
-        "Assembly & Install": "wrench",
-        "Maintenance Plans": "sparkles",
-        "Moving & Packing": "box"
-      })[c.name] || "toolbox";
+    const catCards = data.cats.slice(0, 6).map((c, index) => {
+      const catIcon = ({ "Home & Interior": "homeInt", "Electrical & Repair": "bolt", "Gardening & Outdoor": "leaf", "Assembly & Install": "wrench", "Maintenance Plans": "sparkles", "Moving & Packing": "box" })[c.name] || "toolbox";
       return `
-        <button class="mi-cat" data-svc="${esc(c.name)}">
-          <span class="mi-cat-icon" aria-hidden="true">${icon(catIcon)}</span>
-          <span class="mi-cat-name">${esc(c.name)}</span>
-          <span class="mi-cat-count">${c.services.length} services</span>
-        </button>`;
+      <button class="mi-cat" data-svc="${esc(c.name)}">
+        <span class="mi-cat-index">0${index + 1}</span>
+        <span class="mi-cat-icon" aria-hidden="true">${icon(catIcon)}</span>
+        <span class="mi-cat-name">${esc(c.name)}</span>
+        <span class="mi-cat-count">${c.services.length} services</span>
+        <span class="mi-cat-arrow" aria-hidden="true">↗</span>
+      </button>`;
     }).join("");
 
-    const providerCards = availableProviders.slice(0, 4).map(p => `
+    const providerCards = data.providers.filter(p => p.available).slice(0, 4).map(p => `
       <div class="mi-provider">
+        <div class="mi-provider-signal"><span></span> AVAILABLE</div>
         <div class="mi-provider-head">
           <span class="mi-avatar" aria-hidden="true">${esc(initials(p.full_name))}</span>
           <div style="min-width:0">
@@ -53,96 +50,96 @@ const CustomerHome = {
             : `<span class="mi-provider-rating mi-rating-new">New</span>`}
         </div>
         <div class="mi-provider-rate">From <strong>${money(p.services[0] && p.services[0].hourly_rate)}</strong>/hr</div>
-        <a class="mi-btn mi-btn-primary mi-btn-block" href="/provider/${p.user_id}">View & book</a>
+        <a class="mi-btn mi-btn-primary mi-btn-block" href="/provider/${p.user_id}">View profile <span>↗</span></a>
       </div>`).join("");
 
-    const pkgIncl = p => (p.services || []).slice(0, 3).map(s => `<span class="mi-pkg-chip">${esc(s)}</span>`).join("");
-    const pkgCard = (p, label) => `
+    // Package sections separated by type.
+    const mult = data.packages.filter(p => p.package_type === "multitasking" && p.status !== "archived");
+    const teams = data.packages.filter(p => p.package_type === "team" && p.status !== "archived");
+
+    const pkgIncl = (p) => (p.services || []).slice(0, 4).map(s => `<span class="mi-pkg-chip">${esc(s)}</span>`).join("");
+
+    const pkgCard = (p, typeLabel) => `
       <a class="mi-pkg" href="/package/${p.id}" style="text-decoration:none;color:inherit">
-        <span class="mi-pkg-tag ${p.package_type}">${label}</span>
+        <span class="mi-pkg-tag ${p.package_type}">${typeLabel}</span>
         <div class="mi-pkg-name">${esc(p.name)}</div>
-        <div class="mi-pkg-incl">${esc(p.locality)} · ${p.service_count} services${p.member_count ? " · " + p.member_count + " member crew" : ""}</div>
-        <div class="mi-pkg-desc">${esc(p.description || "").slice(0, 90)}${(p.description || "").length > 90 ? "…" : ""}</div>
+        <div class="mi-pkg-incl">${esc(p.locality)} · ${p.service_count} services${p.member_count ? " · " + p.member_count + " member crew" : " · one provider"}</div>
+        <div class="mi-pkg-desc">${esc(p.description).slice(0, 110)}${p.description.length > 110 ? "…" : ""}</div>
         <div class="mi-pkg-chips">${pkgIncl(p)}</div>
         <div class="mi-pkg-foot">
-          <span class="mi-pkg-price">${money(p.hourly_rate)}<small>/hr</small></span>
+          <span class="mi-pkg-price">${money(p.hourly_rate)}<small>/hr whole package</small></span>
           <span class="mi-btn mi-btn-ghost">Details</span>
         </div>
       </a>`;
 
-    const featuredPackages = activePackages.slice(0, 3);
+    const multHtml = mult.length ? `
+      <div class="mi-section"><span class="mi-section-no">03</span><h2>Multi-skilled specialists</h2><span class="mi-section-note">One professional, thoughtfully bundled services</span></div>
+      <div class="mi-pkgs-mult">${mult.map(p => pkgCard(p, "Multitasking")).join("")}</div>` : "";
+    const teamHtml = teams.length ? `
+      <div class="mi-section"><span class="mi-section-no">04</span><h2>Ready-made crews</h2><span class="mi-section-note">The right specialists, already assembled</span></div>
+      <div class="mi-pkgs-team">${teams.map(p => pkgCard(p, "Team")).join("")}</div>` : "";
 
     el.innerHTML = `
-      <div class="cn-home">
-        <section class="cn-home-hero">
-          <div class="cn-mobile-topbar">
-            <div class="cn-mini-brand"><span>CN</span><strong>CrewNest</strong></div>
-            <div class="cn-mini-location">${icon("map")} Goa</div>
-            <a class="cn-mini-avatar" href="/profile">${esc(initials(me.full_name))}</a>
-          </div>
-          <div class="cn-hero-copy">
-            <span class="cn-kicker">${icon("sparkles")} Local help, without the hassle</span>
-            <h1>Point. Speak. <span class="accent">Sorted.</span></h1>
-            <p>Tell us what needs doing. CrewNest helps you find the right professional or team across Goa.</p>
-            <div class="cn-hero-actions">
-              <a class="cn-hero-btn primary" href="/quickhire">${icon("bolt")} Quick Hire</a>
-              <a class="cn-hero-btn secondary" href="/find">${icon("search")} Explore pros</a>
+      <div class="mi-page-pad">
+        <div class="mi-hero">
+          <div class="mi-hero-copy">
+            <div class="mi-hero-eyebrow"><span></span> Trusted help, close to home</div>
+            <h1>You tell us what’s needed.<br><em>We bring the right people.</em></h1>
+            <p>From a quick repair to a full home refresh, find vetted local professionals or book an entire specialist crew in one place.</p>
+            <div class="mi-hero-actions">
+              <a class="mi-btn mi-btn-light" href="/quickhire"><strong>Quick Hire</strong><span>Urgent · auto-match →</span></a>
+              <a class="mi-btn mi-btn-outline-light" href="/prebook"><strong>Pre-book</strong><span>Choose date & provider →</span></a>
             </div>
-            <div class="cn-market-stats" aria-label="Marketplace stats">
-              <div class="cn-market-stat"><strong>${availableProviders.length}</strong><span>available pros</span></div>
-              <div class="cn-market-stat"><strong>${data.cats.length}</strong><span>service categories</span></div>
-              <div class="cn-market-stat"><strong>${activePackages.length}</strong><span>ready packages</span></div>
+            <div class="mi-hero-proof">
+              <span><strong>${data.providers.filter(p => p.available).length}</strong> available pros</span>
+              <span><strong>${data.cats.reduce((sum, c) => sum + c.services.length, 0)}</strong> services</span>
+              <span><strong>${data.packages.filter(p => p.status !== "archived").length}</strong> curated packages</span>
             </div>
           </div>
-        </section>
-
-        <div class="cn-search-panel">
-          <form class="cn-search-box" id="cn-home-search">
-            <div class="cn-search-input-wrap">${icon("search")}<input id="cn-search" autocomplete="off" placeholder="What needs fixing, cleaning or moving?" aria-label="Search services" /></div>
-            <button class="cn-search-submit" type="submit">Find help</button>
-          </form>
-          <div class="cn-localities" id="cn-localities">
-            ${data.localities.slice(0, 7).map(l => `<button class="cn-locality" data-loc="${esc(l)}">${icon("map")} ${esc(l)}</button>`).join("")}
+          <div class="mi-hero-visual">
+            <img src="/assets/crewnest-hero.png" alt="A skilled local service crew in a modern Goan home" />
+            <div class="mi-hero-float"><span class="network-pulse"></span><strong>Ready when you are</strong><small>Professionals across Goa</small></div>
           </div>
         </div>
 
-        <section class="cn-section">
-          <div class="cn-section-head">
-            <div><h2>What do you need, ${esc(firstName)}?</h2><p>Tap a category and get straight to relevant professionals.</p></div>
-            <a class="cn-section-link" href="/find">See all</a>
-          </div>
-          <div class="mi-cats">${catCards}</div>
-        </section>
+        <div class="mi-search">
+          <label class="sr-only" for="cn-search">Search for a service</label>
+          <span class="mi-search-label">What can we help with?</span>
+          <input id="cn-search" class="input" placeholder="Try “deep cleaning” or “electrician”" />
+          <span class="mi-search-icon" aria-hidden="true">${icon("search")}</span>
+          <span class="mi-search-key" aria-hidden="true">↵</span>
+        </div>
+        <div class="mi-chips" id="loc-chips"></div>
 
-        <section class="cn-section">
-          <div class="cn-section-head">
-            <div><h2>Top professionals near you</h2><p>Available providers you can view and book now.</p></div>
-            <a class="cn-section-link" href="/find">Explore all</a>
-          </div>
-          <div class="mi-providers">${providerCards || `<div class="state-box">No available providers right now.</div>`}</div>
-        </section>
+        <div class="mi-section"><span class="mi-section-no">01</span><h2>Explore by service</h2><span class="mi-section-note">Everything your home needs, in one place</span></div>
+        <div class="mi-cats">${catCards}</div>
 
-        ${featuredPackages.length ? `
-        <section class="cn-section">
-          <div class="cn-section-head">
-            <div><h2>Built for bigger jobs</h2><p>Book bundled services or an entire specialist crew.</p></div>
-            <a class="cn-section-link" href="/packages">All packages</a>
-          </div>
-          <div class="mi-pkgs-team">${featuredPackages.map(p => pkgCard(p, p.package_type === "team" ? "Team" : "Multitasking")).join("")}</div>
-        </section>` : ""}
-      </div>`;
+        <div class="mi-section"><span class="mi-section-no">02</span><h2>Recommended professionals</h2><span class="mi-section-note">Available and trusted across Goa</span></div>
+        <div class="mi-providers">${providerCards || `<div class="mi-empty">No available providers yet.</div>`}</div>
 
-    document.getElementById("cn-home-search").addEventListener("submit", e => {
-      e.preventDefault();
-      const q = document.getElementById("cn-search").value.trim();
-      location.href = q ? `/find?q=${encodeURIComponent(q)}` : "/find";
+        ${multHtml}
+        ${teamHtml}
+      </div>
+    `;
+
+    // Locality chips
+    API.get("/api/localities").then(d => {
+      const wrap = document.getElementById("loc-chips");
+      wrap.innerHTML = d.localities.slice(0, 6).map(l =>
+        `<button class="mi-chip" data-loc="${esc(l)}">${icon("map")}${esc(l)}</button>`).join("");
+      wrap.querySelectorAll("[data-loc]").forEach(b => b.addEventListener("click", () => {
+        location.href = `/home?loc=${encodeURIComponent(b.dataset.loc)}`;
+      }));
+    }).catch(() => {});
+
+    document.getElementById("cn-search").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const q = e.target.value.trim();
+        location.href = q ? `/find?q=${encodeURIComponent(q)}` : "/find";
+      }
     });
-
-    el.querySelectorAll("[data-loc]").forEach(b => b.addEventListener("click", () => {
-      location.href = `/find?loc=${encodeURIComponent(b.dataset.loc)}`;
-    }));
-    el.querySelectorAll(".mi-cat").forEach(c => c.addEventListener("click", () => {
-      location.href = `/find?q=${encodeURIComponent(c.dataset.svc)}`;
-    }));
+    document.querySelectorAll(".mi-cat").forEach(c => {
+      c.addEventListener("click", () => location.href = `/find?q=${encodeURIComponent(c.dataset.svc)}`);
+    });
   },
 };
