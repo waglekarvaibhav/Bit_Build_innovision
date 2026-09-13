@@ -12,12 +12,13 @@ const API = {
     const init = { method, headers };
     if (body !== undefined && method !== "GET") init.body = JSON.stringify(body);
 
-    // GET requests are safe to retry. This protects the UI from temporary
-    // Render cold-start/network failures without repeating write operations.
+    // Keep retries short. By the time the SPA is running Render has already
+    // started serving the app, so mobile pages should never sit on skeletons
+    // for a minute waiting on one API call.
     const retryable = method === "GET" && opts.retry !== false;
-    const retryDelays = opts.retryDelays || [1200, 2500, 5000, 8000, 12000, 15000];
+    const retryDelays = opts.retryDelays || [700, 1500];
     const retryStatuses = new Set([502, 503, 504]);
-    const timeoutMs = opts.timeoutMs || 12000;
+    const timeoutMs = opts.timeoutMs || 7000;
     let res = null;
 
     for (let attempt = 0; attempt <= retryDelays.length; attempt += 1) {
