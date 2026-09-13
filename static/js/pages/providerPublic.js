@@ -37,12 +37,14 @@ const ProviderPublic = {
           </div>
         </div>
         ${p.bio ? `<p class="small" style="margin-top:var(--space-3)">${esc(p.bio)}</p>` : ""}
-        <button class="btn primary mt-2" id="book-now">Book ${esc(p.full_name)}</button>
+        ${p.available
+          ? `<button class="btn primary mt-2" id="book-now">Book ${esc(p.full_name)}</button>`
+          : `<button class="btn mt-2" type="button" disabled>Currently unavailable</button>`}
       </div>
 
       <div class="card mt-1">
         <h3>Services & rates</h3>
-        ${p.services.map(s => `
+        ${p.services.length ? p.services.map(s => `
           <div class="between" style="padding:10px 0;border-bottom:1px solid var(--border)">
             <strong>${esc(s.service_name)}</strong>
             <div class="chips-row">
@@ -50,7 +52,7 @@ const ProviderPublic = {
               ${s.daily_rate ? `<span class="chip-inline">daily ${money(s.daily_rate)}</span>` : ""}
               ${s.monthly_rate ? `<span class="chip-inline">monthly ${money(s.monthly_rate)}</span>` : ""}
             </div>
-          </div>`).join("")}
+          </div>`).join("") : `<p class="small muted">No services are currently listed.</p>`}
       </div>
 
       <div class="card mt-1">
@@ -63,12 +65,14 @@ const ProviderPublic = {
       </div>
     `;
 
-    document.getElementById("book-now").addEventListener("click", () => {
-      const firstSvc = p.services[0];
-      const qs = new URLSearchParams({ provider: params.id });
-      if (firstSvc) qs.set("service", firstSvc.service_id);
-      location.href = "/quickhire?" + qs.toString();
-    });
+    const bookBtn = document.getElementById("book-now");
+    if (bookBtn) {
+      bookBtn.addEventListener("click", () => {
+        const firstSvc = p.services[0];
+        const qs = new URLSearchParams({ provider: params.id });
+        if (firstSvc) qs.set("service", firstSvc.service_id);
+        location.href = "/quickhire?" + qs.toString();
+      });
+    }
   },
 };
-
