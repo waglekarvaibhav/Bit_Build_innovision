@@ -36,6 +36,16 @@ def _photo_url(rel_path: str) -> str:
     return f"/uploads/{rel}"
 
 
+def _served_photo_url(stored_url: str) -> str:
+    """Normalize legacy photo URLs created before the /uploads mount fix."""
+    url = (stored_url or "").replace("\\", "/")
+    if url.startswith("/uploads/"):
+        return url
+    if url.startswith("/booking-photos/") or url.startswith("/profile-images/"):
+        return "/uploads" + url
+    return url
+
+
 @router.get("/{booking_id}/photos")
 def list_photos(
     booking_id: int,
@@ -54,7 +64,12 @@ def list_photos(
         .all()
     )
     return [
-        {"id": p.id, "photo_type": p.photo_type.value, "url": p.url, "created_at": p.created_at.isoformat()}
+        {
+            "id": p.id,
+            "photo_type": p.photo_type.value,
+            "url": _served_photo_url(p.url),
+            "created_at": p.created_at.isoformat(),
+        }
         for p in rows
     ]
 
