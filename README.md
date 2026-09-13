@@ -1,12 +1,12 @@
-# CrewNest
+# JobHustle
 
 ### Find the right professional. Build the right crew. Get the job done.
 
-CrewNest is a local service hiring platform that connects customers with skilled professionals such as electricians, plumbers, cleaners, gardeners, painters, movers, handymen, and other service providers.
+JobHustle is a local service hiring platform that connects customers with skilled professionals such as electricians, plumbers, cleaners, gardeners, painters, movers, handymen, and other service providers.
 
 The platform makes it easier for customers to find trusted professionals, compare services and prices, create bookings, and track the complete service process.
 
-CrewNest also allows professionals to work individually or form service packages and teams for jobs that require multiple skills.
+JobHustle also allows professionals to work individually or form service packages and teams for jobs that require multiple skills.
 
 ---
 
@@ -57,7 +57,7 @@ Finding and coordinating different workers separately can be difficult and time-
 
 ## Our Solution
 
-CrewNest provides one platform where customers can discover, compare, and hire local professionals.
+JobHustle provides one platform where customers can discover, compare, and hire local professionals.
 
 Customers can search for professionals based on their service, location, pricing, experience, and availability.
 
