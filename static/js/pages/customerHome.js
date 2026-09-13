@@ -5,16 +5,18 @@ const CustomerHome = {
     const shell = mountShell("home");
     shell.innerHTML = `<div class="skeleton"></div>`;
 
-    let data;
-    try {
-      const [cats, providers, packages] = await Promise.all([
-        API.get("/api/service-categories"),
-        API.get("/api/providers"),
-        API.get("/api/packages"),
-      ]);
-      // Only show available, rated or not, real providers.
-      data = { cats, providers, packages };
-    } catch (e) { showFatal(e, shell); return; }
+    // Do not block the whole mobile home screen on one slow catalogue request.
+    // Each section can render independently with an empty fallback.
+    const [catsResult, providersResult, packagesResult] = await Promise.allSettled([
+      API.get("/api/service-categories"),
+      API.get("/api/providers"),
+      API.get("/api/packages"),
+    ]);
+    const data = {
+      cats: catsResult.status === "fulfilled" && Array.isArray(catsResult.value) ? catsResult.value : [],
+      providers: providersResult.status === "fulfilled" && Array.isArray(providersResult.value) ? providersResult.value : [],
+      packages: packagesResult.status === "fulfilled" && Array.isArray(packagesResult.value) ? packagesResult.value : [],
+    };
 
     const head = `
       <div class="page-kicker"><span></span> Home</div>
@@ -31,7 +33,7 @@ const CustomerHome = {
         <span class="mi-cat-index">0${index + 1}</span>
         <span class="mi-cat-icon" aria-hidden="true">${icon(catIcon)}</span>
         <span class="mi-cat-name">${esc(c.name)}</span>
-        <span class="mi-cat-count">${c.services.length} services</span>
+        <span class="mi-cat-count">${(c.services || []).length} services</span>
         <span class="mi-cat-arrow" aria-hidden="true">↗</span>
       </button>`;
     }).join("");
@@ -49,7 +51,7 @@ const CustomerHome = {
             ? `<span class="mi-provider-rating"><span class="mi-stars">★</span>${Number(p.rating).toFixed(1)}<span class="mi-rating-count">(${p.review_count})</span></span>`
             : `<span class="mi-provider-rating mi-rating-new">New</span>`}
         </div>
-        <div class="mi-provider-rate">From <strong>${money(p.services[0] && p.services[0].hourly_rate)}</strong>/hr</div>
+        <div class="mi-provider-rate">From <strong>${money(p.services && p.services[0] && p.services[0].hourly_rate)}</strong>/hr</div>
         <a class="mi-btn mi-btn-primary mi-btn-block" href="/provider/${p.user_id}">View profile <span>↗</span></a>
       </div>`).join("");
 
@@ -64,7 +66,7 @@ const CustomerHome = {
         <span class="mi-pkg-tag ${p.package_type}">${typeLabel}</span>
         <div class="mi-pkg-name">${esc(p.name)}</div>
         <div class="mi-pkg-incl">${esc(p.locality)} · ${p.service_count} services${p.member_count ? " · " + p.member_count + " member crew" : " · one provider"}</div>
-        <div class="mi-pkg-desc">${esc(p.description).slice(0, 110)}${p.description.length > 110 ? "…" : ""}</div>
+        <div class="mi-pkg-desc">${esc(p.description || "").slice(0, 110)}${(p.description || "").length > 110 ? "…" : ""}</div>
         <div class="mi-pkg-chips">${pkgIncl(p)}</div>
         <div class="mi-pkg-foot">
           <span class="mi-pkg-price">${money(p.hourly_rate)}<small>/hr whole package</small></span>
@@ -92,7 +94,7 @@ const CustomerHome = {
             </div>
             <div class="mi-hero-proof">
               <span><strong>${data.providers.filter(p => p.available).length}</strong> available pros</span>
-              <span><strong>${data.cats.reduce((sum, c) => sum + c.services.length, 0)}</strong> services</span>
+              <span><strong>${data.cats.reduce((sum, c) => sum + (c.services || []).length, 0)}</strong> services</span>
               <span><strong>${data.packages.filter(p => p.status !== "archived").length}</strong> curated packages</span>
             </div>
           </div>
@@ -112,19 +114,20 @@ const CustomerHome = {
         <div class="mi-chips" id="loc-chips"></div>
 
         <div class="mi-section"><span class="mi-section-no">01</span><h2>Explore by service</h2><span class="mi-section-note">Everything your home needs, in one place</span></div>
-        <div class="mi-cats">${catCards}</div>
+        <div class="mi-cats">${catCards || `<div class="mi-empty">Services are temporarily unavailable. You can still use Quick Hire or Pre-book.</div>`}</div>
 
         <div class="mi-section"><span class="mi-section-no">02</span><h2>Recommended professionals</h2><span class="mi-section-note">Available and trusted across Goa</span></div>
-        <div class="mi-providers">${providerCards || `<div class="mi-empty">No available providers yet.</div>`}</div>
+        <div class="mi-providers">${providerCards || `<div class="mi-empty">Professionals are taking a little longer to load.</div>`}</div>
 
         ${multHtml}
         ${teamHtml}
       </div>
     `;
 
-    // Locality chips
-    API.get("/api/localities").then(d => {
+    // Locality chips are optional and should never block Home.
+    API.get("/api/localities", { retry: false, timeoutMs: 5000 }).then(d => {
       const wrap = document.getElementById("loc-chips");
+      if (!wrap || !d || !Array.isArray(d.localities)) return;
       wrap.innerHTML = d.localities.slice(0, 6).map(l =>
         `<button class="mi-chip" data-loc="${esc(l)}">${icon("map")}${esc(l)}</button>`).join("");
       wrap.querySelectorAll("[data-loc]").forEach(b => b.addEventListener("click", () => {
@@ -132,7 +135,8 @@ const CustomerHome = {
       }));
     }).catch(() => {});
 
-    document.getElementById("cn-search").addEventListener("keydown", (e) => {
+    const search = document.getElementById("cn-search");
+    if (search) search.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         const q = e.target.value.trim();
         location.href = q ? `/find?q=${encodeURIComponent(q)}` : "/find";
