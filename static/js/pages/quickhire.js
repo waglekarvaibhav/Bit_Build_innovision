@@ -18,32 +18,40 @@ const PreBook = {
     this.state.serviceId = qs.get("service") || null;
     this.state.packageId = qs.get("package") || null;
     if (this.state.packageId) {
-      // Package preselect: load it and jump to details.
       el.innerHTML = `<div class="skeleton"></div>`;
       try {
         const pkg = await API.get(`/api/packages/${this.state.packageId}`);
         if (!pkg.services[0]) throw new Error("This package has no service to preselect.");
         if (this._packageIncludesMe(pkg, me.id)) throw new Error("You cannot book a package that you provide or belong to.");
-        // pick the package's first service for the item context
         this.state.serviceId = null;
         this.state._pkg = pkg;
-        this.stepPackage(/* from detail */);
+        this.stepPackage();
       } catch (e) { showFatal(e, el); }
       return;
     }
+
     el.innerHTML = `<div class="skeleton"></div>`;
 
-    let cats = [], providers = [];
-    try {
-      const [c, p] = await Promise.all([API.get("/api/service-categories"), API.get("/api/providers")]);
-      cats = c; providers = p.filter(x => x.available && x.user_id !== me.id);
-    } catch (e) { showFatal(e, el); return; }
+    // Providers begin loading in parallel, but Step 1 no longer waits for them.
+    // This keeps Pre-book usable on slower mobile connections.
+    this._providersPromise = API.get("/api/providers", { timeoutMs: 7000 })
+      .then(p => Array.isArray(p) ? p.filter(x => x.available && x.user_id !== me.id) : [])
+      .catch(() => []);
 
-    const services = cats.flatMap(c => c.services);
-    this.stepService(services, providers, el);
+    let cats = [];
+    try {
+      const c = await API.get("/api/service-categories", { timeoutMs: 7000 });
+      cats = Array.isArray(c) ? c : [];
+    } catch (e) {
+      showFatal(e, el);
+      return;
+    }
+
+    const services = cats.flatMap(c => c.services || []);
+    this.stepService(services, el);
   },
 
-  stepService(services, providers, el) {
+  stepService(services, el) {
     const options = services.map(s => `<button class="svc-option" data-id="${s.id}" data-name="${esc(s.name)}">${esc(s.name)}<small>${esc(s.category || "")}</small></button>`).join("");
     el.innerHTML = `
       <div class="stepper small muted">Step 1 of 4 · Choose a service</div>
@@ -53,23 +61,23 @@ const PreBook = {
       </div>
     `;
     const sel = document.getElementById("svc-grid");
-    sel.querySelectorAll(".svc-option").forEach(b => b.addEventListener("click", () => {
+    sel.querySelectorAll(".svc-option").forEach(b => b.addEventListener("click", async () => {
       this.state.serviceId = Number(b.dataset.id);
       this._svcName = b.dataset.name;
+      const providers = this._providersPromise ? await this._providersPromise : [];
       this.stepSelect(providers);
     }));
   },
 
   async stepSelect(providers) {
     const shell = document.getElementById("content");
-    const cats = window._cats || [];
     const svcId = this.state.serviceId;
     const svcName = this._svcName || "";
     let packages = [];
-    try { packages = (await API.get("/api/packages")) || []; } catch (e) {}
+    try { packages = (await API.get("/api/packages", { retry: false, timeoutMs: 5000 })) || []; } catch (e) {}
     const myId = Auth.user().id;
     const matchingPkgs = packages.filter(p =>
-      p.services.includes(svcName) &&
+      (p.services || []).includes(svcName) &&
       p.status !== "archived" &&
       !this._packageIncludesMe(p, myId)
     );
@@ -88,21 +96,20 @@ const PreBook = {
     `;
 
     const provWrap = document.getElementById("provider-options");
-    const eligible = providers.filter(p => p.services.some(s => s.service_id == svcId));
-    provWrap.innerHTML = (eligible.length ? eligible : providers).map(p => `
+    const eligible = providers.filter(p => (p.services || []).some(s => s.service_id == svcId));
+    const rows = eligible.length ? eligible : providers;
+    provWrap.innerHTML = rows.length ? rows.map(p => `
       <div class="list-item">
         <div class="grow">
           <div class="between"><strong>${esc(p.full_name)}</strong> ${ratingHtml(p.rating, p.review_count)}</div>
           <div class="meta">${esc(p.profession)} · ${esc(p.locality)}</div>
         </div>
         <button class="btn ghost sm pick-provider" data-id="${p.user_id}" data-name="${esc(p.full_name)}">Select</button>
-      </div>`).join("");
+      </div>`).join("") : `<p class="small muted">Professionals are taking a little longer to load. You can go back and try again, or choose a matching package below.</p>`;
 
-    const matching = window._packages || [];
     const pkgWrap = document.getElementById("package-options");
     if (pkgWrap) {
-      const pkgs = matchingPkgs;
-      pkgWrap.innerHTML = pkgs.map(p => `
+      pkgWrap.innerHTML = matchingPkgs.map(p => `
         <div class="list-item">
           <div class="grow">
             <div class="between"><strong>${esc(p.name)}</strong> <span class="tag ${p.package_type}">${p.package_type === "team" ? "Team" : "Multitasking"}</span></div>
@@ -135,9 +142,6 @@ const PreBook = {
   },
 
   stepPackage() {
-    // Jump straight to job details for a package that was pre-selected by
-    // deep link (e.g. from package detail page). serviceId is null; backend
-    // resolves scope from the package.
     const pkg = this.state._pkg;
     if (!pkg) { this.render(); return; }
     const shell = document.getElementById("content");
@@ -190,7 +194,7 @@ const PreBook = {
     });
   },
 
-  _clearPicks() {    document.querySelectorAll(".pick-provider,.pick-package").forEach(x => {
+  _clearPicks() { document.querySelectorAll(".pick-provider,.pick-package").forEach(x => {
       x.className = x.classList.contains("pick-provider") ? "btn ghost sm pick-provider" : "btn ghost sm pick-package";
       x.textContent = "Select";
     });
@@ -227,7 +231,6 @@ const PreBook = {
       </form>
     `;
 
-    // Set a sensible default date (tomorrow) and today's start time.
     const d = new Date(); d.setDate(d.getDate() + 1);
     document.getElementById("d-date").value = d.toISOString().slice(0, 10);
     document.getElementById("d-time").value = "10:00";
@@ -273,13 +276,11 @@ const PreBook = {
       }
     } catch (e) { quotePreview = null; }
 
-    // Billing unit label
     const quoteUnits = this.state.billingUnit === "hourly" ? d.hours
       : this.state.billingUnit === "daily" ? Math.max(1, Math.round(d.hours / 8))
       : Math.max(1, Math.round(d.hours / (8 * 22)));
     const unitCount = quoteUnits;
 
-    // Preview price (server recomputes authoritatively on submit).
     let preview = null;
     if (this.state.packageId && this.state._pkg) preview = this.state._pkg.hourly_rate * quoteUnits;
     else if (this.state._rate != null) preview = this.state._rate * quoteUnits;
@@ -331,7 +332,6 @@ const PreBook = {
         errEl.textContent = ex.message;
         errEl.style.display = "block";
         btn.disabled = false;
-        // preserve form: return to step 3 with inputs intact (state kept)
         this.stepDetails(svcName);
       }
     });
