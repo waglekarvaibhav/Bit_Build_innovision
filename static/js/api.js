@@ -12,12 +12,35 @@ const API = {
     const init = { method, headers };
     if (body !== undefined && method !== "GET") init.body = JSON.stringify(body);
 
-    let res;
-    try {
-      res = await fetch(this.base + path, init);
-    } catch (e) {
-      throw new Error("Network error — is the JobHustle server running?");
+    // GET requests are safe to retry. This protects the UI from temporary
+    // Render cold-start/network failures without repeating write operations.
+    const retryable = method === "GET" && opts.retry !== false;
+    const retryDelays = opts.retryDelays || [1200, 2500, 5000, 8000, 12000, 15000];
+    const retryStatuses = new Set([502, 503, 504]);
+    let res = null;
+
+    for (let attempt = 0; attempt <= retryDelays.length; attempt += 1) {
+      try {
+        res = await fetch(this.base + path, init);
+      } catch (e) {
+        if (retryable && attempt < retryDelays.length) {
+          await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]));
+          continue;
+        }
+        throw new Error("JobHustle could not connect to the server. Please try again.");
+      }
+
+      if (retryable && retryStatuses.has(res.status) && attempt < retryDelays.length) {
+        await new Promise(resolve => setTimeout(resolve, retryDelays[attempt]));
+        continue;
+      }
+      break;
     }
+
+    if (!res) {
+      throw new Error("JobHustle could not connect to the server. Please try again.");
+    }
+
     if (res.status === 401) {
       Auth.clear();
       if (!location.pathname.includes("/login")) {
@@ -141,9 +164,11 @@ const Toast = {
 const NotificationCenter = {
   _timer: null,
   _lastTopId: null,
+  _disabled: false,
   _data: { unread_count: 0, notifications: [] },
 
   mount() {
+    if (this._disabled) return;
     document.querySelector(".cn-notification-shell")?.remove();
     if (this._timer) clearInterval(this._timer);
     const shell = document.createElement("div");
@@ -187,8 +212,9 @@ const NotificationCenter = {
   },
 
   async refresh(silent = false) {
+    if (this._disabled) return;
     try {
-      const data = await API.get("/api/notifications");
+      const data = await API.get("/api/notifications", { retry: false });
       const latest = data.notifications[0];
       const isNew = this._lastTopId != null && latest && latest.id !== this._lastTopId && !latest.is_read;
       this._data = data;
@@ -199,6 +225,14 @@ const NotificationCenter = {
       }
       this._lastTopId = latest ? latest.id : null;
     } catch (e) {
+      // If this deployment does not expose notification routes, stop polling
+      // instead of hammering the server with a 404 every few seconds.
+      if (e.status === 404) {
+        this._disabled = true;
+        if (this._timer) clearInterval(this._timer);
+        this._timer = null;
+        document.querySelector(".cn-notification-shell")?.remove();
+      }
       // Notifications are an enhancement; the core booking flow remains usable.
     }
   },
