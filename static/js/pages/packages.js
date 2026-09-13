@@ -31,7 +31,9 @@ const PackagesPage = {
         <div class="chips-row">${p.services.slice(0, 4).map(s => `<span class="chip-inline">${esc(s)}</span>`).join("")}</div>
         <div class="between mt-2">
           <span class="price">${money(p.hourly_rate)}<small>/hr</small></span>
-          ${team.length ? `<span class="xsmall muted">${p.member_count}-person crew</span>` : `<span class="xsmall muted">1 provider</span>`}
+          ${p.package_type === "team"
+            ? `<span class="xsmall muted">${p.member_count}-person crew</span>`
+            : `<span class="xsmall muted">1 provider</span>`}
         </div>
       </a>`;
 
