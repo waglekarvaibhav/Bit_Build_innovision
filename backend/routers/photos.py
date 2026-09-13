@@ -1,16 +1,14 @@
 """Job photo uploads for before/after images.
 
 Files are validated by content type and size, stored under the local uploads
-directory, and served from the same app. Access to a booking's photos is limited
-to the booking customer and participating providers.
+directory, and served from the same app. Access to a booking's photo metadata is
+limited to the booking customer and participating providers.
 """
 from __future__ import annotations
 
-import os
 import uuid
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from fastapi.staticfiles import StaticFiles
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from ..config import settings
@@ -24,7 +22,7 @@ router = APIRouter(prefix="/api/bookings", tags=["photos"])
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MAX_SIZE = 5 * 1024 * 1024  # 5 MB
 
-# Ensure upload root and subfolders exist.
+# Ensure upload root and subfolders exist before FastAPI mounts /uploads.
 UPLOAD_ROOT = settings.absolute_upload_dir
 for _sub in ("booking-photos", "profile-images"):
     _d = UPLOAD_ROOT / _sub
@@ -33,10 +31,9 @@ for _sub in ("booking-photos", "profile-images"):
 
 
 def _photo_url(rel_path: str) -> str:
-    rel = rel_path.replace("\\", "/")
-    if not rel.startswith("/"):
-        rel = "/" + rel
-    return f"{rel}"
+    """Return the browser URL for a file stored below UPLOAD_ROOT."""
+    rel = rel_path.replace("\\", "/").lstrip("/")
+    return f"/uploads/{rel}"
 
 
 @router.get("/{booking_id}/photos")
